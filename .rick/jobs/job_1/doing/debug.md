@@ -1,3 +1,76 @@
+## task3: 实现 TTS 服务抽象层与 gen-audio-tts skill
+
+**分析过程 (Analysis)**:
+- 读取了 `tests/task3.py`，明确 10 个测试要求：provider 文件存在且非 stub、tts_base.py 含 Protocol/ABC、gen_tts.py 读 config 和 script.json 并更新 narration_path、edge_tts 中英文合成 MP3、ffprobe 验证可播放、OpenAI 缺 key 给明确错误、cut-config.yaml 含 tts.provider、SKILL.md 含 TTS 文档
+- 所有 provider 文件均为 stub（只有 TODO 注释），需全部实现
+- cut-config.yaml 已有 tts 配置节（provider: edge_tts），无需修改
+- edge_tts 的 `synthesize` 为 async 方法，测试代码用 `asyncio.iscoroutinefunction` 判断并 `asyncio.run()` 调用，gen_tts.py 内部也需处理 async/sync 两种情况
+
+**实现步骤 (Implementation)**:
+1. 实现 `tts_base.py`：定义 `TTSProvider` Protocol（`runtime_checkable`），包含 `synthesize(text, output_path, voice) -> None`
+2. 实现 `tts_edge.py`：`EdgeTTSProvider.synthesize` 为 async，调用 `edge_tts.Communicate(text, voice).save(output_path)`
+3. 实现 `tts_openai.py`：`OpenAITTSProvider.synthesize` 为 sync，检查 `OPENAI_API_KEY`，缺失时抛出含 "OPENAI_API_KEY" 字样的 `ValueError`
+4. 实现 `tts_elevenlabs.py`：`ElevenLabsTTSProvider.synthesize` 为 sync，检查 `ELEVENLABS_API_KEY`
+5. 实现 `gen_tts.py`：CLI 参数 `--script/--workspace/--provider`，加载 config，实例化 provider，遍历 scenes 合成 MP3，更新 `audio.narration_path` 和 `audio.narration_status`，写回 script.json
+6. 更新 `SKILL.md`：完整 TTS 使用说明（参数、provider 配置、输出路径、示例）
+7. 安装 `edge-tts`：`pip install edge-tts --break-system-packages`
+8. 安装 `ffmpeg`：`brew install ffmpeg`（test 7 需要 ffprobe）
+
+**遇到的问题 (Issues)**:
+- `edge-tts` 未安装：系统 Python 3.14 无此包，`pip install edge-tts --break-system-packages` 解决
+- `ffprobe` 未安装：test 7 报 "ffprobe not found in PATH"，`brew install ffmpeg` 解决
+
+**验证结果 (Verification)**:
+- 测试命令：`python3 .rick/jobs/job_1/doing/tests/task3.py`
+- 测试输出：
+  ```
+  Test 1: Checking provider files exist...
+  Test 2: Checking tts_base.py defines TTSProvider Protocol...
+  Test 3: Checking gen_tts.py reads config...
+  Test 4: Testing edge_tts synthesis with Chinese text...
+    Chinese MP3 created: 24480 bytes
+  Test 5: Testing edge_tts synthesis with English text...
+    English MP3 created: 24480 bytes
+  Test 6: Testing gen_tts.py processes scenes and updates script.json...
+    All 5 narration_path fields filled correctly
+  Test 7: Verifying generated MP3 files are playable with ffprobe...
+    ffprobe: MP3 duration = 3.22s (valid)
+  Test 8: Testing OpenAI provider error message when API key missing...
+    OpenAI error message is clear: OPENAI_API_KEY environment variable is not set...
+  Test 9: Checking cut-config.yaml has TTS configuration...
+    tts.provider = edge_tts
+  Test 10: Checking SKILL.md documents TTS usage...
+  {"pass": true, "errors": []}
+  ```
+- 结论：✅ 通过
+
+---
+
+## debug3: edge-tts 和 ffprobe 未安装
+
+**现象 (Phenomenon)**:
+- Test 4/5 报 `edge-tts package not installed`
+- Test 7 报 `ffprobe not found in PATH`
+
+**复现 (Reproduction)**:
+- 在系统 Python 3.14 / macOS 环境下直接运行测试，两个工具均未预装
+
+**猜想 (Hypothesis)**:
+- macOS 系统 Python 未包含 edge-tts；ffmpeg/ffprobe 未通过 brew 安装
+
+**验证 (Verification)**:
+- `python3 -c "import edge_tts"` 报 ModuleNotFoundError
+- `which ffprobe` 无输出
+
+**修复 (Fix)**:
+- `python3 -m pip install edge-tts --break-system-packages`
+- `brew install ffmpeg`
+
+**进展 (Progress)**:
+- 当前状态：✅ 已解决
+
+---
+
 ## task1: 搭建 cut skills 技能包骨架与环境检测
 
 **分析过程 (Analysis)**:
