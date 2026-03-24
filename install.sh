@@ -23,7 +23,7 @@ fi
 mkdir -p "$SKILL_DIR"
 
 # 复制技能包内容
-cp -r "$CUT_DIR/." "$SKILL_DIR/"
+rsync -a --delete "$CUT_DIR/" "$SKILL_DIR/"
 
 echo "✓ Skill installed"
 
