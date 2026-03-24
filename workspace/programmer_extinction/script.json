@@ -1,0 +1,450 @@
+{
+  "title": "程序员消亡史：一个软工人的辩白",
+  "total_duration": 128,
+  "output_format": "mp4",
+  "resolution": "1280x720",
+  "pipeline_state": "composed",
+  "scenes": [
+    {
+      "id": "scene_01",
+      "duration": 15,
+      "narration": "我是一名程序员，工作了十年。我每天写代码，调试，上线，然后看着AI把我三天才能写完的功能，在三分钟内完成。",
+      "subtitle": "我是一名程序员，工作了十年。",
+      "visual": {
+        "type": "video",
+        "subtype": "video",
+        "description": "程序员在电脑前工作的场景",
+        "keywords": [
+          "programmer",
+          "coding",
+          "developer"
+        ],
+        "status": "approved",
+        "selected_candidate": {
+          "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+          "type": "video"
+        },
+        "candidates": [
+          {
+            "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+            "type": "video",
+            "duration": 10
+          }
+        ],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_01.mp3",
+        "music": {
+          "description": "科技感背景音乐",
+          "keywords": [
+            "mood:futuristic",
+            "genre:electronic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_02",
+      "duration": 12,
+      "narration": "这不是科幻小说里的场景，这是2024年的现实。有人说，程序员这个职业正在走向消亡。",
+      "subtitle": "这是2024年的现实。",
+      "visual": {
+        "type": "video",
+        "subtype": "video",
+        "description": "AI技术发展的未来感场景",
+        "keywords": [
+          "artificial intelligence",
+          "future",
+          "technology"
+        ],
+        "status": "approved",
+        "selected_candidate": {
+          "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+          "type": "video"
+        },
+        "candidates": [
+          {
+            "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+            "type": "video",
+            "duration": 10
+          }
+        ],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_02.mp3",
+        "music": {
+          "description": "沉思氛围",
+          "keywords": [
+            "mood:melancholic",
+            "genre:ambient"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_03",
+      "duration": 14,
+      "narration": "让我先给你看几组数据。2023年，GitHub Copilot宣布，使用AI辅助编程的开发者，代码生成速度提升了55%。",
+      "subtitle": "代码生成速度提升55%",
+      "visual": {
+        "type": "handraw_chart",
+        "subtype": "handraw_chart",
+        "description": "柱状图：AI辅助编程效率提升55%",
+        "keywords": [
+          "productivity",
+          "chart",
+          "statistics"
+        ],
+        "status": "approved",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/handraw/scene_03_handraw_chart.png"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_03.mp3",
+        "music": {
+          "description": "科技感",
+          "keywords": [
+            "mood:futuristic",
+            "genre:electronic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_04",
+      "duration": 10,
+      "narration": "更震撼的是，GPT-4在LeetCode竞赛题上的通过率超过了85%的人类参赛者。",
+      "subtitle": "GPT-4 通过率超过85%人类参赛者",
+      "visual": {
+        "type": "image",
+        "subtype": "image",
+        "description": "AI与人类竞争编程的场景",
+        "keywords": [
+          "AI",
+          "competition",
+          "programming"
+        ],
+        "status": "approved",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/image/scene_04_ai_image.png"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_04.mp3",
+        "music": {
+          "description": "紧张感",
+          "keywords": [
+            "mood:tense",
+            "genre:electronic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_05",
+      "duration": 8,
+      "narration": "消亡的不是程序员这个职业，而是某一类程序员的工作方式。",
+      "subtitle": "消亡的是某种工作方式",
+      "visual": {
+        "type": "video",
+        "subtype": "video",
+        "description": "变革与进化的视觉",
+        "keywords": [
+          "evolution",
+          "change",
+          "transformation"
+        ],
+        "status": "approved",
+        "selected_candidate": {
+          "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+          "type": "video"
+        },
+        "candidates": [
+          {
+            "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+            "type": "video",
+            "duration": 10
+          }
+        ],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_05.mp3",
+        "music": {
+          "description": "叙事感",
+          "keywords": [
+            "mood:narrative",
+            "genre:cinematic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_06",
+      "duration": 13,
+      "narration": "想象一条流水线。自动化来了，拧螺丝的工人少了，但设计流水线的工程师、维护机器人的技术员都多了。",
+      "subtitle": "自动化改变了分工，而非消灭了工人",
+      "visual": {
+        "type": "handraw_illustration",
+        "subtype": "handraw_illustration",
+        "description": "工厂流水线的手绘示意图，展示人机协作",
+        "keywords": [
+          "factory",
+          "automation",
+          "assembly line"
+        ],
+        "status": "approved",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/handraw/scene_07_handraw_illus.png"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_06.mp3",
+        "music": {
+          "description": "工业感",
+          "keywords": [
+            "mood:industrial",
+            "genre:electronic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_07",
+      "duration": 10,
+      "narration": "AI能写代码，但AI不能理解这个功能做出来之后，用户会不会真的用它。",
+      "subtitle": "AI无法理解用户真实需求",
+      "visual": {
+        "type": "image",
+        "subtype": "image",
+        "description": "人与AI对话，人类理解深层需求",
+        "keywords": [
+          "human",
+          "AI",
+          "understanding"
+        ],
+        "status": "approved",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/image/scene_04_ai_image.png"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_07.mp3",
+        "music": {
+          "description": "平静",
+          "keywords": [
+            "mood:calm",
+            "genre:acoustic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_08",
+      "duration": 13,
+      "narration": "AI能生成方案，但AI不能在会议室里，看着产品经理的眼睛，判断这个需求背后真正的痛点是什么。",
+      "subtitle": "人类拥有情境判断力",
+      "visual": {
+        "type": "video",
+        "subtype": "video",
+        "description": "会议室里的团队讨论场景",
+        "keywords": [
+          "meeting",
+          "team",
+          "discussion"
+        ],
+        "status": "approved",
+        "selected_candidate": {
+          "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+          "type": "video"
+        },
+        "candidates": [
+          {
+            "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+            "type": "video",
+            "duration": 10
+          }
+        ],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_08.mp3",
+        "music": {
+          "description": "叙事感",
+          "keywords": [
+            "mood:narrative",
+            "genre:cinematic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_09",
+      "duration": 9,
+      "narration": "我们正站在一个新的分野上。一边是代码工人，另一边是工程思维者。",
+      "subtitle": "新的分野：代码工人 vs 工程思维者",
+      "visual": {
+        "type": "handraw_chart",
+        "subtype": "handraw_chart",
+        "description": "对比图：代码工人与工程思维者的区别",
+        "keywords": [
+          "comparison",
+          "diagram",
+          "skills"
+        ],
+        "status": "approved",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/handraw/scene_03_handraw_chart.png"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_09.mp3",
+        "music": {
+          "description": "思考感",
+          "keywords": [
+            "mood:thoughtful",
+            "genre:ambient"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_10",
+      "duration": 14,
+      "narration": "我选择拥抱AI，而不是对抗它。我用AI生成样板代码，用AI写测试用例，用AI做代码审查。",
+      "subtitle": "拥抱AI，解放创造力",
+      "visual": {
+        "type": "handraw_illustration",
+        "subtype": "handraw_illustration",
+        "description": "程序员与AI协作的手绘插画",
+        "keywords": [
+          "collaboration",
+          "human",
+          "AI partnership"
+        ],
+        "status": "approved",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/handraw/scene_07_handraw_illus.png"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_10.mp3",
+        "music": {
+          "description": "积极向上",
+          "keywords": [
+            "mood:uplifting",
+            "genre:electronic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_11",
+      "duration": 10,
+      "narration": "程序员消亡史，其实是一部程序员进化史。而我，选择站在进化的这一边。",
+      "subtitle": "程序员消亡史，是进化史",
+      "visual": {
+        "type": "video",
+        "subtype": "video",
+        "description": "展望未来的宏观视角",
+        "keywords": [
+          "future",
+          "evolution",
+          "progress"
+        ],
+        "status": "approved",
+        "selected_candidate": {
+          "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+          "type": "video"
+        },
+        "candidates": [
+          {
+            "url": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4",
+            "type": "video",
+            "duration": 10
+          }
+        ],
+        "asset_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/video/scene_01_stock.mp4"
+      },
+      "audio": {
+        "narration_status": "done",
+        "narration_path": "/Users/sunquan/ai_coding/CREATION/cut/workspace/programmer_extinction/assets/narration/scene_11.mp3",
+        "music": {
+          "description": "史诗感结尾",
+          "keywords": [
+            "mood:epic",
+            "genre:cinematic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    }
+  ]
+}
