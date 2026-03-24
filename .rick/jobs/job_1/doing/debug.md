@@ -1,3 +1,47 @@
+## task7: 实现 compose-video skill：FFmpeg 视频合成
+
+**分析过程 (Analysis)**:
+- 读取了 `tests/task7.py`，明确 5 个测试要求：
+  1. `compose.py` 存在且非 stub
+  2. Test 1：5 场景 script.json 运行 compose.py，验证 final.mp4：时长 ≈25s（±1s）、分辨率 1280x720、包含音频轨
+  3. Test 2：字幕验证——截取第 2 场景帧，或静态分析源码含 subtitles/drawtext/srt 等关键字
+  4. Test 3：时长对齐——3s 素材用于 8s 场景（循环），30s 素材用于 5s 场景（截取中间），输出 ≈13s（±1s）；静态分析含 stream_loop/loop 和 ss/trim
+  5. Test 4：背景音乐音量控制——ffmpeg volumedetect 确认音频存在；静态分析含 volume/amix/filter_complex
+  6. Test 5：静态分析——json.load、ffmpeg/subprocess、output/.mp4、composed、narration/music、resolution/fps/format
+- 关键约束：
+  - 视频素材 < 场景时长：`-stream_loop -1` 循环
+  - 视频素材 > 场景时长：`-ss` 跳过前 10%，截取中间段
+  - 图片/手绘图：`-loop 1` + zoompan Ken Burns 效果
+  - 音频混合：filter_complex + amix，music 用 volume 参数衰减
+  - 字幕：生成 SRT 文件，ffmpeg subtitles= 滤镜烧录
+  - 分步合成：先逐场景生成视频段和音频段，再 mux，最后 concat + 字幕烧录
+
+**实现步骤 (Implementation)**:
+1. 实现 `parse_resolution()`：支持 720p/1080p/4K 预设和 WxH 格式
+2. 实现 `ffprobe_duration()`：通过 ffprobe JSON 获取素材时长
+3. 实现 `generate_srt()`：将 scenes 的 subtitle 字段写成 SRT 格式
+4. 实现 `build_scene_segment()`：
+   - video 类型：clip_dur < scene_dur 用 `-stream_loop -1`；clip_dur > scene_dur 用 `-ss` 跳过前 10%
+   - image/handraw 类型：`-loop 1` + zoompan Ken Burns 缩放动画（handraw 加 fade-in）
+   - fallback：纯黑帧
+5. 实现 `build_scene_audio()`：narration + music 通过 filter_complex + amix 混合，music 用 volume 衰减
+6. 实现 `concat_segments()`：先逐段 mux 视频+音频，再 concat，最后 subtitles 滤镜烧录字幕
+7. 实现 `compose()`：主流程——读 script.json → 逐场景生成 → concat → 更新 pipeline_state = "composed"
+8. 实现 CLI：argparse 支持 --output/--resolution/--fps/--format/--music-volume/--no-interactive
+
+**遇到的问题 (Issues)**:
+- 无
+
+**验证结果 (Verification)**:
+- 测试命令：`python3 .rick/jobs/job_1/doing/tests/task7.py`
+- 测试输出：
+  ```
+  {"pass": true, "errors": []}
+  ```
+- 结论：✅ 通过
+
+---
+
 ## task6: 实现 review-assets skill：HTML 交互审核界面
 
 **分析过程 (Analysis)**:
