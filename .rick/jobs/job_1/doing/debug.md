@@ -1,3 +1,75 @@
+## task5: 实现 gen-assets skill：AI 素材生成（图片/视频/手绘图）
+
+**分析过程 (Analysis)**:
+- 读取了 `tests/task5.py`，明确 5 组测试要求：
+  1. 所有实现文件存在且非 stub（11 个文件）
+  2. DALL-E 3 生成图片 + script.json visual.status 更新（有 OPENAI_API_KEY 时执行）
+  3. Runway ML 生成视频 + ffprobe 验证时长（有 RUNWAY_API_KEY 时执行）
+  4. handraw_chart：SVG→PNG，纯 Python，无需 Node.js，文件 ≥1KB
+  5. handraw_illustration：DALL-E 3 + 手绘风格 prompt（有 OPENAI_API_KEY 时执行）
+  5a. provider 切换：dalle3 → stable_diffusion（Protocol 验证 + mock 测试）
+  5b. mock provider 扩展性：通过 provider_map 注入新 provider 无需修改 gen_handraw.py
+- 所有 11 个实现文件均为 stub（TODO 注释），需全部实现
+- cut-config.yaml 已有 image_generation/video_generation/handraw 配置节
+- 关键约束：
+  - handraw_chart 必须用 cairosvg（纯 Python），不能用 Node.js
+  - gen_handraw.py 必须用 provider_map 支持扩展，测试通过注入 mock_type 验证
+  - handraw_illus_dalle.py 必须含 hand-drawn/sketch/pencil/ink 等关键词
+  - image_sdiffusion.py 必须实现 def generate()
+
+**实现步骤 (Implementation)**:
+1. 实现 `providers/image_base.py`：`ImageProvider` Protocol（runtime_checkable），`generate(prompt, output_path, size) -> None`
+2. 实现 `providers/image_dalle3.py`：`Dalle3ImageProvider`，调用 OpenAI images.generate，urllib 下载
+3. 实现 `providers/image_sdiffusion.py`：`StableDiffusionProvider`，调用 Stability AI v1 API，base64 解码
+4. 实现 `providers/video_base.py`：`VideoProvider` Protocol，`generate(prompt, output_path, duration) -> None`
+5. 实现 `providers/video_runway.py`：`RunwayVideoProvider`，提交任务→轮询→下载，最大等待 300s
+6. 实现 `providers/handraw_base.py`：`HandrawProvider` Protocol，`generate(subject, output_path) -> str`
+7. 实现 `providers/handraw_chart_svg.py`：`HandrawChartSVGProvider`，优先用 Claude/GPT-4o-mini 生成 SVG，无 key 时用内置折线图模板，cairosvg 转 PNG
+8. 实现 `providers/handraw_illus_dalle.py`：`HandrawIllusDalleProvider`，固定风格后缀 `"hand-drawn illustration, sketch style, black ink on white, rough lines, pencil drawing, doodle art"`
+9. 实现 `gen_image.py`：`generate_image()` 单图生成 + `run()` 批量处理 script.json，provider_map 支持 dalle3/stable_diffusion
+10. 实现 `gen_video.py`：`generate_video()` 单视频 + `run()` 批量处理，支持 runway provider
+11. 实现 `gen_handraw.py`：`provider_map` dict（支持字符串 `module:Class` 格式），`get_provider()` 动态 import，`generate()` 支持直接传入 provider 实例（测试注入），`run()` 批量处理
+12. 更新 `SKILL.md`：完整文档（各服务商 API Key、费用参考、如何扩展新 provider）
+13. 安装 `cairosvg`：`pip install cairosvg --break-system-packages`
+
+**遇到的问题 (Issues)**:
+- `cairosvg` 未安装：Test 3 报 `cairosvg not installed`，`pip install cairosvg --break-system-packages` 解决
+
+**验证结果 (Verification)**:
+- 测试命令：`python3 .rick/jobs/job_1/doing/tests/task5.py`
+- 测试输出：
+  ```
+  OPENAI_API_KEY not set — skipping live DALL-E 3 image generation test
+  RUNWAY_API_KEY not set — skipping live Runway video generation test
+  OPENAI_API_KEY not set — skipping live handraw_illustration test
+  {"pass": true, "errors": []}
+  ```
+- 结论：✅ 通过
+
+---
+
+## debug5: cairosvg 未安装
+
+**现象 (Phenomenon)**:
+- Test 3 报错：`cairosvg not installed. Run: pip install cairosvg`
+
+**复现 (Reproduction)**:
+- 在系统 Python 3.14 / macOS 环境下直接运行测试，cairosvg 未预装
+
+**猜想 (Hypothesis)**:
+- macOS 系统 Python 未包含 cairosvg（需要 cairo 图形库）
+
+**验证 (Verification)**:
+- `python3 -c "import cairosvg"` 报 ModuleNotFoundError
+
+**修复 (Fix)**:
+- `python3 -m pip install cairosvg --break-system-packages`
+
+**进展 (Progress)**:
+- 当前状态：✅ 已解决
+
+---
+
 ## task4: 实现 fetch-assets skill：素材搜索（视频/图片/音乐）
 
 **分析过程 (Analysis)**:
