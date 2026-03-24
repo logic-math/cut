@@ -1,3 +1,76 @@
+## task4: 实现 fetch-assets skill：素材搜索（视频/图片/音乐）
+
+**分析过程 (Analysis)**:
+- 读取了 `tests/task4.py`，明确 5 个测试要求：
+  1. 三个实现文件存在且非 stub
+  2. Pexels 视频搜索返回 ≥3 个候选（含 url/duration/thumbnail），有 PEXELS_API_KEY 时执行
+  3. Jamendo 音乐搜索返回 ≥3 个候选（含 name/artist/duration/download_url），有 JAMENDO_API_KEY 时执行
+  4. Pexels 返回空时自动 fallback 到 Pixabay（通过 mock 验证）
+  5. API Key 未配置时给出明确提示（含获取方式说明）
+  6. 对 10 场景 script.json 全量搜索，验证每个场景的 candidates 字段被正确填充（通过 mock 验证）
+- 已有 placeholder 文件（3 行 stub），cut-config.yaml 已有 stock_video/stock_image/music 配置节
+- 关键设计约束：测试通过 `mock.patch.object(fetch_video_mod, fn_name, ...)` 打补丁，要求所有 provider 函数必须在 `fetch_video.py` 同一模块中，且 fallback 函数通过 `globals()` 动态查找函数名，使 mock 生效
+- 选择：将视频、图片、音乐三类 provider 函数全部实现在 `fetch_video.py` 中（作为主入口），`fetch_image.py` 和 `fetch_music.py` 保留独立实现供直接调用，`fetch_assets.py` 作为统一入口
+
+**实现步骤 (Implementation)**:
+1. 实现 `fetch_video.py`：
+   - `search_pexels_videos`、`search_pixabay_videos`：调用各自 REST API，返回含 url/duration/thumbnail 的候选列表
+   - `fetch_video_candidates`：多 provider fallback，通过 `globals()` 调用以支持 mock
+   - `search_pexels_images`、`search_pixabay_images`：图片搜索 API
+   - `fetch_image_candidates`：图片多 provider fallback，同样通过 `globals()`
+   - `search_jamendo_music`、`search_pixabay_music`：音乐搜索 API，支持 mood:/genre: 前缀解析
+   - `fetch_music_candidates`：音乐多 provider fallback，通过 `globals()`
+   - `run(script_path)`：综合处理所有场景（video/image/music），写回 script.json
+2. 实现 `fetch_image.py`：独立图片搜索实现，含 `run()` 供直接调用
+3. 实现 `fetch_music.py`：独立音乐搜索实现，含 `run()` 供直接调用
+4. 实现 `fetch_assets.py`：统一入口，导入三个模块，处理所有场景类型
+5. 更新 `SKILL.md`：API Key 配置说明、provider 优先级、输出格式、音乐关键词格式、许可证信息
+
+**遇到的问题 (Issues)**:
+- Test 5 mock 不生效：初始实现中 `fetch_video.run` 通过 `import fetch_music as _fm` 委托调用，mock 打在 `fetch_video_mod` 上但实际执行路径绕过了它
+  - 修复：将所有 provider 函数实现在 `fetch_video.py` 中，fallback 函数用 `globals()` 动态查找，使 `mock.patch.object` 的补丁生效
+- `sys.modules[__name__]` 方案不可行：测试用 `importlib.util.spec_from_file_location` 加载模块但不注册到 `sys.modules`，导致 `sys.modules['fetch_video']` 可能为空或指向不同对象
+  - 修复：改用 `globals()` — 它返回模块的 `__dict__`，与 `mock.patch.object` 修改的是同一个字典
+
+**验证结果 (Verification)**:
+- 测试命令：`python3 .rick/jobs/job_1/doing/tests/task4.py`
+- 测试输出：
+  ```
+  PEXELS_API_KEY not set — skipping live Pexels test
+  JAMENDO_API_KEY not set — skipping live Jamendo test
+  {"pass": true, "errors": []}
+  ```
+- 结论：✅ 通过
+
+---
+
+## debug4: mock.patch.object 不生效 — 模块委托导致补丁被绕过
+
+**现象 (Phenomenon)**:
+- Test 5 全量搜索后所有 candidates 为空，错误：`Following scenes have empty candidates after full run`
+- mock 已设置，但实际仍调用真实 API 并因缺少 key 而返回空列表
+
+**复现 (Reproduction)**:
+- `fetch_video.run` → `fetch_music_candidates` → `import fetch_music as _fm; _fm.fetch_music_candidates()` → `_fm.search_jamendo_music()`
+- `mock.patch.object(fetch_video_mod, 'search_jamendo_music', mock_fn)` 只修改 `fetch_video_mod.__dict__`，但调用路径走 `fetch_music` 模块的同名函数
+
+**猜想 (Hypothesis)**:
+- Python mock 补丁只修改被 patch 的对象的属性，不影响其他模块中同名函数的引用
+
+**验证 (Verification)**:
+- 加 print 确认：mock 补丁设置后，`fetch_video_mod.search_jamendo_music` 是 mock，但 `fetch_music_mod.search_jamendo_music` 仍是原函数
+- 调用链最终到达 `fetch_music_mod.search_jamendo_music`（未 mock）
+
+**修复 (Fix)**:
+- 将所有 provider 函数（包括 image 和 music）直接实现在 `fetch_video.py` 中
+- fallback 函数改用 `globals()` 查找函数名：`globals()['search_jamendo_music'](...)` 而非直接调用 `search_jamendo_music(...)`
+- `globals()` 返回模块 `__dict__`，`mock.patch.object` 修改的正是同一个 dict，补丁生效
+
+**进展 (Progress)**:
+- 当前状态：✅ 已解决
+
+---
+
 ## task3: 实现 TTS 服务抽象层与 gen-audio-tts skill
 
 **分析过程 (Analysis)**:
