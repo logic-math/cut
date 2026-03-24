@@ -10,7 +10,7 @@
 
 ## 安装
 
-### 1. 系统依赖
+### 前置条件
 
 **FFmpeg**（必须）：
 
@@ -20,9 +20,6 @@ brew install ffmpeg
 
 # Ubuntu/Debian
 sudo apt install ffmpeg
-
-# 验证
-ffmpeg -version
 ```
 
 **Python 3.11+**（必须）：
@@ -31,30 +28,32 @@ ffmpeg -version
 python3 --version  # 确认 ≥ 3.11
 ```
 
-### 2. Python 依赖
+### 安装为 Claude Code Skill（推荐）
 
-```bash
-pip install PyYAML edge-tts cairosvg jsonschema
-```
-
-可选依赖（按需安装）：
-
-```bash
-pip install anthropic   # 用 Claude API 生成高质量脚本
-pip install openai      # 用 DALL-E 3 生成图片
-```
-
-### 3. 克隆项目
+克隆项目后运行一键安装脚本，自动将 cut 注册为 Claude Code 的 `/cut` skill：
 
 ```bash
 git clone <repo-url>
 cd cut
+bash install.sh
 ```
 
-### 4. 验证安装
+安装完成后，在任意 Claude Code 会话中直接说：
+
+> "帮我把 `my_lecture.md` 做成视频"
+
+Claude Code 会自动识别并执行完整流水线，无需手动调用任何脚本。
+
+也可以显式触发：
+
+```
+/cut
+```
+
+### 验证安装
 
 ```bash
-python3 cut/scripts/check_env.py
+python3 ~/.claude/skills/cut/scripts/check_env.py
 ```
 
 正常输出：
@@ -65,6 +64,13 @@ python3 cut/scripts/check_env.py
 ✓ cairosvg OK
 ✓ edge-tts OK
 ✓ PyYAML OK
+```
+
+### 可选依赖（按需安装）
+
+```bash
+pip install anthropic   # 用 Claude API 生成高质量脚本
+pip install openai      # 用 DALL-E 3 生成图片/手绘插图
 ```
 
 ---

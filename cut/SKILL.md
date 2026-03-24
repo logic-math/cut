@@ -1,302 +1,127 @@
 ---
 name: cut
-description: Context-First AI Coding Framework for producing video content from scripts. Orchestrates a pipeline from draft script through asset fetching/generation, human review, and final video composition.
-trigger: Use this skill when you need to create a video from a text script, manage the video production pipeline, or work with any of the cut sub-skills (draft-script, fetch-assets, gen-assets, review-assets, compose-video).
 version: "0.1.0"
+description: 将文字讲稿转化为视频。当用户提到"把讲稿/文章做成视频"、"生成视频脚本"、"合成视频"、"视频制作流水线"、"cut 技能包"时使用。执行完整流水线：讲稿 → 视听脚本 → TTS 旁白 → 素材搜索/生成 → 人工审核 → FFmpeg 合成 → 最终 MP4。
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # cut — AI 视频生产技能包
 
-`cut` 是一个模块化技能包，将文字讲稿通过 AI 流水线转化为最终视频。支持 TTS 旁白、AI 图片生成、手绘图、股票视频搜索、人工审核和 FFmpeg 合成。
+## 你的任务
 
-## Pipeline 总览
+用户想把一篇文字讲稿制作成视频。按以下流水线执行，每步完成后向用户确认再继续。
 
-```
-讲稿(文字) → [draft-script] → 视听脚本(JSON)
-                                    ↓
-                        人工审核确认脚本
-                                    ↓
-          [fetch-assets] / [gen-assets] (并行)
-                                    ↓
-                        [review-assets] 人工审核素材
-                                    ↓
-                        [compose-video]
-                                    ↓
-                        最终视频文件 (MP4/MOV)
-```
+## 前置检查
 
----
+首先定位 cut 安装目录和项目工作目录：
 
-## Sub-Skills 详细说明
-
-### draft-script
-
-**路径**: `cut/skills/draft-script/scripts/draft_script.py`
-
-将文字讲稿转化为结构化的视听脚本 JSON，包含每个场景的旁白、字幕、画面描述、素材关键词和背景音乐建议。
-
-**调用方式**:
 ```bash
-python cut/skills/draft-script/scripts/draft_script.py \
-  --input <讲稿.md> \
+# cut 安装在 ~/.claude/skills/cut/
+SKILL_DIR="$HOME/.claude/skills/cut"
+python3 "$SKILL_DIR/scripts/check_env.py"
+```
+
+如果环境检测有报错，先引导用户完成安装（见报错提示）。
+
+## 执行步骤
+
+### Step 1：确认输入
+
+询问用户：
+1. 讲稿文件路径（Markdown 格式，也可接受纯文本）
+2. 项目名称（用于创建 workspace 目录，默认取文件名）
+3. 输出目录（默认 `./workspace`）
+
+### Step 2：生成视听脚本
+
+```bash
+python3 "$SKILL_DIR/scripts/draft_script.py" \
+  --input <讲稿路径> \
   --project <项目名> \
-  --workspace-base workspace
+  --workspace-base <输出目录>
 ```
 
-**参数说明**:
-- `--input`: 输入讲稿文件路径（Markdown 格式）
-- `--project`: 项目名称，用于创建 workspace 目录
-- `--workspace-base`: workspace 根目录（默认 `./workspace`）
-- `--lang`: 语言（`zh` 或 `en`，默认 `zh`）
+完成后：
+- 读取生成的 `script_preview.md` 展示给用户（场景列表、时长、旁白摘要）
+- 询问用户是否满意，如需调整可修改 `script.json` 后继续
 
-**输出**:
-- `workspace/<project>/<timestamp>/script.json`：结构化脚本
-- `workspace/<project>/<timestamp>/script_preview.md`：Markdown 预览表格
-
-**script.json 格式**:
-```json
-{
-  "title": "视频标题",
-  "total_duration": 120,
-  "output_format": "mp4",
-  "resolution": "1920x1080",
-  "pipeline_state": "draft",
-  "scenes": [
-    {
-      "id": "scene_01",
-      "duration": 10,
-      "narration": "旁白文字",
-      "subtitle": "字幕文字",
-      "visual": {
-        "type": "video|image|handraw_chart|handraw_illustration",
-        "description": "画面描述",
-        "keywords": ["english", "keywords"],
-        "status": "pending",
-        "asset_path": null
-      },
-      "audio": {
-        "narration_status": "pending",
-        "narration_path": null,
-        "music": {
-          "keywords": ["mood:calm", "genre:ambient"],
-          "volume": 0.3
-        }
-      }
-    }
-  ]
-}
-```
-
-**API Key 配置**:
-- `ANTHROPIC_API_KEY`：调用 Claude API 生成高质量脚本
-- 无 key 时：自动使用 mock 模式（基于文本切分）
-
----
-
-### fetch-assets
-
-**路径**: `cut/skills/fetch-assets/scripts/fetch_assets.py`
-
-从股票素材平台搜索视频、图片和音乐候选，填充 `script.json` 中每个场景的 `candidates` 字段。
-
-**调用方式**:
-```bash
-python cut/skills/fetch-assets/scripts/fetch_assets.py <script.json>
-```
-
-**支持的 Provider**:
-
-| 类型 | Provider | API Key 环境变量 | 获取地址 |
-|------|----------|-----------------|---------|
-| 视频/图片 | Pexels | `PEXELS_API_KEY` | pexels.com/api |
-| 视频/图片 | Pixabay | `PIXABAY_API_KEY` | pixabay.com/api |
-| 音乐 | Jamendo | `JAMENDO_API_KEY` | developer.jamendo.com |
-
-**Fallback 机制**: Pexels 无结果时自动 fallback 到 Pixabay。
-
-**音乐关键词格式**:
-```
-mood:melancholic    # 情绪标签
-genre:ambient       # 风格标签
-```
-
-**输出**: 更新 `script.json` 中每个场景的 `visual.candidates` 和 `audio.music.candidates`。
-
----
-
-### gen-assets
-
-**路径**: `cut/skills/gen-assets/scripts/`
-
-生成 AI 素材，包括 TTS 旁白音频、AI 图片、AI 视频和手绘图。
-
-#### gen_tts.py — TTS 旁白生成
+### Step 3：生成 TTS 旁白
 
 ```bash
-python cut/skills/gen-assets/scripts/gen_tts.py \
-  --script <script.json> \
-  --workspace <workspace_dir> \
-  --provider edge_tts
+SCRIPT_PATH="<workspace>/<project>/<timestamp>/script.json"
+WORKSPACE_DIR="<workspace>/<project>/<timestamp>"
+
+python3 "$SKILL_DIR/skills/gen-assets/scripts/gen_tts.py" \
+  --script "$SCRIPT_PATH" \
+  --workspace "$WORKSPACE_DIR"
 ```
 
-**支持的 TTS Provider**:
+默认使用免费的 edge-tts，无需 API Key。
 
-| Provider | 配置名 | API Key | 特点 |
-|----------|--------|---------|------|
-| edge-tts | `edge_tts` | 无需 | 免费，支持中英文 |
-| OpenAI TTS | `openai` | `OPENAI_API_KEY` | 高质量，收费 |
-| ElevenLabs | `elevenlabs` | `ELEVENLABS_API_KEY` | 最高质量，收费 |
-
-**输出**: 在 `workspace/assets/narration/` 生成 MP3 文件，更新 `audio.narration_path`。
-
-#### gen_image.py — AI 图片生成
+### Step 4：搜索素材（可选，需要 API Key）
 
 ```bash
-python cut/skills/gen-assets/scripts/gen_image.py \
-  --script <script.json> \
-  --workspace <workspace_dir>
+python3 "$SKILL_DIR/skills/fetch-assets/scripts/fetch_assets.py" "$SCRIPT_PATH"
 ```
 
-**支持的 Provider**:
-- `dalle3`：DALL-E 3（需要 `OPENAI_API_KEY`）
-- `stable_diffusion`：Stability AI（需要 `STABILITY_API_KEY`）
+如果用户没有 `PEXELS_API_KEY` 等，跳过此步。
 
-#### gen_handraw.py — 手绘图生成
+### Step 5：生成 AI 素材（可选，需要 API Key）
 
 ```bash
-python cut/skills/gen-assets/scripts/gen_handraw.py \
-  --script <script.json> \
-  --workspace <workspace_dir>
+# 手绘图（无需 API Key）
+python3 "$SKILL_DIR/skills/gen-assets/scripts/gen_handraw.py" \
+  --script "$SCRIPT_PATH" --workspace "$WORKSPACE_DIR"
+
+# AI 图片（需要 OPENAI_API_KEY）
+python3 "$SKILL_DIR/skills/gen-assets/scripts/gen_image.py" \
+  --script "$SCRIPT_PATH" --workspace "$WORKSPACE_DIR"
 ```
 
-**两种手绘类型**:
-- `handraw_chart`：数据图表，使用 SVG 纯 Python 方案（**无需 API Key**）
-- `handraw_illustration`：概念插画，使用 DALL-E 3（需要 `OPENAI_API_KEY`）
-
-**SVG 方案特点**: 使用 `cairosvg` 将 SVG 转换为 PNG，无需 Node.js，无需 API Key。
-
-#### gen_video.py — AI 视频生成
+### Step 6：审核素材（可选）
 
 ```bash
-python cut/skills/gen-assets/scripts/gen_video.py \
-  --script <script.json> \
-  --workspace <workspace_dir>
+python3 "$SKILL_DIR/skills/review-assets/scripts/generate_review.py" "$SCRIPT_PATH"
 ```
 
-**支持的 Provider**:
-- `runway`：Runway ML（需要 `RUNWAY_API_KEY`）
+生成 `review.html`，告知用户在浏览器中打开审核，选完后保存继续。
 
----
+### Step 7：合成最终视频
 
-### review-assets
-
-**路径**: `cut/skills/review-assets/scripts/generate_review.py`
-
-生成交互式 HTML 审核页面，让用户在浏览器中选择每个场景的最佳素材。
-
-**调用方式**:
 ```bash
-python cut/skills/review-assets/scripts/generate_review.py <script.json>
-```
-
-**功能**:
-- 展示每个场景的所有候选素材（视频/图片/音频预览）
-- 支持手动选择 `selected_candidate`
-- 支持标记"AI 生成"状态（`generating: true`）
-- 保存时更新 `script.json` 中的 `status` 和 `pipeline_state`
-
-**两种审核模式**:
-1. **服务器模式**：通过 POST `/save_script` 直接写回 `script.json`
-2. **纯静态模式**：通过浏览器下载更新后的 `script.json`（无需服务器）
-
----
-
-### compose-video
-
-**路径**: `cut/skills/compose-video/scripts/compose.py`
-
-使用 FFmpeg 将所有审核通过的素材合成为最终视频。
-
-**调用方式**:
-```bash
-python cut/skills/compose-video/scripts/compose.py <script.json> \
-  --output <output.mp4> \
+python3 "$SKILL_DIR/skills/compose-video/scripts/compose.py" \
+  "$SCRIPT_PATH" \
+  --output "<workspace>/<project>/output/final.mp4" \
   --resolution 1280x720 \
   --fps 24 \
-  --format mp4 \
-  --music-volume 0.3 \
   --no-interactive
 ```
 
-**参数说明**:
-- `--resolution`: `720p` / `1080p` / `4K` / `WxH`（默认交互询问）
-- `--fps`: 帧率，24 或 30（默认交互询问）
-- `--format`: `mp4` 或 `mov`（默认交互询问）
-- `--music-volume`: 背景音乐音量 0.0-1.0（默认 0.3）
-- `--no-interactive`: 使用默认值，不交互询问
+完成后展示输出路径和视频时长。
 
-**视频素材处理逻辑**:
-- `video`：clip 短于场景时长 → 循环（`-stream_loop -1`）；长于场景时长 → 截取中间段（跳过前 10%）
-- `image`：Ken Burns 缓慢放大效果
-- `handraw`：fade-in 淡入 + 缓慢放大效果
-- 无素材：黑色填充帧
+## 关键路径说明
 
-**音频处理**:
-- 旁白（主轨）+ 背景音乐（`volume` 衰减）通过 `amix` 混合
-- 无素材时生成静音轨
+- **skill 脚本根目录**: `~/.claude/skills/cut/`
+- **环境检测**: `scripts/check_env.py`
+- **讲稿转脚本**: `skills/draft-script/scripts/draft_script.py`
+- **TTS 旁白**: `skills/gen-assets/scripts/gen_tts.py`
+- **素材搜索**: `skills/fetch-assets/scripts/fetch_assets.py`
+- **手绘图生成**: `skills/gen-assets/scripts/gen_handraw.py`
+- **AI 图片**: `skills/gen-assets/scripts/gen_image.py`
+- **审核页面**: `skills/review-assets/scripts/generate_review.py`
+- **视频合成**: `skills/compose-video/scripts/compose.py`
+- **服务商配置**: `cut-config.yaml`
 
-**字幕**:
-- 生成 SRT 文件并通过 `subtitles` 滤镜烧录（需要 FFmpeg 含 libass）
+## pipeline_state 状态
 
-**输出**: 更新 `script.json` 中 `pipeline_state = "composed"`。
+每步完成后 `script.json` 中的 `pipeline_state` 会更新：
 
----
+| 状态 | 含义 |
+|------|------|
+| `draft` | 脚本已生成 |
+| `assets_fetched` | 素材搜索完成 |
+| `tts_done` | TTS 旁白完成 |
+| `assets_reviewed` | 素材审核完成 |
+| `composed` | 视频合成完成 |
 
-## 配置文件
-
-编辑 `cut/cut-config.yaml`：
-
-```yaml
-tts:
-  provider: edge_tts
-  voice: zh-CN-XiaoxiaoNeural
-  output_format: mp3
-
-image_generation:
-  provider: dalle3
-  size: "1792x1024"
-  quality: standard
-
-video_generation:
-  provider: runway
-  duration: 4
-
-handraw:
-  chart_provider: svg_python
-  illus_provider: dalle3
-
-output:
-  default_resolution: "1280x720"
-  default_fps: 24
-  default_format: mp4
-```
-
----
-
-## 环境检测
-
-```bash
-python cut/scripts/check_env.py
-```
-
-检测项目：Python 版本、FFmpeg、cairosvg、PyYAML、edge-tts、openai、anthropic。
-
----
-
-## Pipeline State 流转
-
-```
-draft → assets_fetched → assets_generated → assets_reviewed → composed
-```
-
-每个 skill 完成后会更新 `script.json` 中的 `pipeline_state`，确保流水线状态可追踪。
+如果用户想从中间某步继续，读取 `script.json` 的 `pipeline_state` 判断从哪里接着执行。
