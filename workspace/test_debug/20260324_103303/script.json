@@ -1,0 +1,114 @@
+{
+  "title": "测试讲稿",
+  "total_duration": 25,
+  "output_format": "mp4",
+  "resolution": "1920x1080",
+  "pipeline_state": "draft",
+  "scenes": [
+    {
+      "id": "scene_01",
+      "duration": 8,
+      "narration": "这是第一段内容，讲述了一个重要的概念。",
+      "subtitle": "这是第一段内容，讲述了一个重要的概念。",
+      "visual": {
+        "type": "video",
+        "description": "场景01：这是第一段内容，讲述了一个重要的概念。...",
+        "keywords": [
+          "technology",
+          "modern",
+          "concept"
+        ],
+        "status": "pending",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": null
+      },
+      "audio": {
+        "narration_status": "pending",
+        "narration_path": null,
+        "music": {
+          "description": "沉思氛围",
+          "keywords": [
+            "mood:melancholic",
+            "genre:ambient"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_02",
+      "duration": 9,
+      "narration": "这是第二段内容，进一步解释了这个概念的细节。",
+      "subtitle": "这是第二段内容，进一步解释了这个概念的细节。",
+      "visual": {
+        "type": "image",
+        "description": "场景02：这是第二段内容，进一步解释了这个概念的细节。...",
+        "keywords": [
+          "technology",
+          "modern",
+          "concept"
+        ],
+        "status": "pending",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": null
+      },
+      "audio": {
+        "narration_status": "pending",
+        "narration_path": null,
+        "music": {
+          "description": "科技感",
+          "keywords": [
+            "mood:futuristic",
+            "genre:electronic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    },
+    {
+      "id": "scene_03",
+      "duration": 8,
+      "narration": "这是第三段内容，给出了一个具体的例子。",
+      "subtitle": "这是第三段内容，给出了一个具体的例子。",
+      "visual": {
+        "type": "handraw_chart",
+        "description": "场景03：这是第三段内容，给出了一个具体的例子。...",
+        "keywords": [
+          "technology",
+          "modern",
+          "concept"
+        ],
+        "status": "pending",
+        "selected_candidate": null,
+        "candidates": [],
+        "asset_path": null
+      },
+      "audio": {
+        "narration_status": "pending",
+        "narration_path": null,
+        "music": {
+          "description": "叙事感",
+          "keywords": [
+            "mood:narrative",
+            "genre:cinematic"
+          ],
+          "status": "pending",
+          "selected_candidate": null,
+          "candidates": [],
+          "asset_path": null,
+          "volume": 0.3
+        }
+      }
+    }
+  ]
+}

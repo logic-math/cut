@@ -1,0 +1,81 @@
+{
+  "job_id": "job_1",
+  "project": "cut - Claude Code skills 技能包",
+  "created_at": "2026-03-23",
+  "tasks": [
+    {
+      "id": "task1",
+      "name": "搭建 cut skills 技能包骨架与环境检测",
+      "dependencies": [],
+      "parallel_group": "foundation",
+      "estimated_days": 0.5,
+      "file": "tasks/task1.md"
+    },
+    {
+      "id": "task2",
+      "name": "实现 draft-script skill：讲稿转视听脚本",
+      "dependencies": ["task1"],
+      "parallel_group": "core_skills",
+      "estimated_days": 1.5,
+      "file": "tasks/task2.md"
+    },
+    {
+      "id": "task3",
+      "name": "实现 TTS 服务抽象层与 gen-audio-tts skill",
+      "dependencies": ["task1"],
+      "parallel_group": "core_skills",
+      "estimated_days": 1.0,
+      "file": "tasks/task3.md"
+    },
+    {
+      "id": "task4",
+      "name": "实现 fetch-assets skill：素材搜索（视频/图片/音乐）",
+      "dependencies": ["task1"],
+      "parallel_group": "core_skills",
+      "estimated_days": 1.5,
+      "file": "tasks/task4.md"
+    },
+    {
+      "id": "task5",
+      "name": "实现 gen-assets skill：AI 素材生成（图片/视频/手绘图，含可扩展 handraw 抽象层）",
+      "dependencies": ["task1"],
+      "parallel_group": "core_skills",
+      "estimated_days": 2.0,
+      "file": "tasks/task5.md"
+    },
+    {
+      "id": "task6",
+      "name": "实现 review-assets skill：HTML 交互审核界面",
+      "dependencies": ["task4", "task5"],
+      "parallel_group": "review",
+      "estimated_days": 1.0,
+      "file": "tasks/task6.md"
+    },
+    {
+      "id": "task7",
+      "name": "实现 compose-video skill：FFmpeg 视频合成",
+      "dependencies": ["task3", "task6"],
+      "parallel_group": "compose",
+      "estimated_days": 1.5,
+      "file": "tasks/task7.md"
+    },
+    {
+      "id": "task8",
+      "name": "端到端集成测试：用《程序员消亡史》验证完整流水线",
+      "dependencies": ["task2", "task3", "task4", "task5", "task6", "task7"],
+      "parallel_group": "integration",
+      "estimated_days": 1.0,
+      "file": "tasks/task8.md"
+    }
+  ],
+  "critical_path": ["task1", "task5", "task6", "task7", "task8"],
+  "total_estimated_days": 10,
+  "parallel_estimated_days": 6,
+  "execution_order": [
+    "task1（基础）",
+    "task2 + task3 + task4 + task5（可并行）",
+    "task6（依赖 task4+5）",
+    "task7（依赖 task3+6）",
+    "task8（集成验收）"
+  ]
+}

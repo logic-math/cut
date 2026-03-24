@@ -1,0 +1,116 @@
+{
+  "version": "1.0",
+  "created_at": "2026-03-24T10:21:55.182604+08:00",
+  "updated_at": "2026-03-24T11:35:47.065456+08:00",
+  "tasks": [
+    {
+      "task_id": "task1",
+      "task_name": "搭建 cut skills 技能包骨架与环境检测",
+      "task_file": "task1.md",
+      "status": "success",
+      "dependencies": [],
+      "attempts": 0,
+      "commit_hash": "9b723239325bd450027f7500dd9ffd4ba9f07c57",
+      "created_at": "2026-03-24T10:21:55.182604+08:00",
+      "updated_at": "2026-03-24T10:23:52.742175+08:00"
+    },
+    {
+      "task_id": "task2",
+      "task_name": "实现 draft-script skill：讲稿转视听脚本",
+      "task_file": "task2.md",
+      "status": "success",
+      "dependencies": [
+        "task1"
+      ],
+      "attempts": 0,
+      "commit_hash": "ab8f25c11dfc432b43ddf1acd34135d87215f223",
+      "created_at": "2026-03-24T10:21:55.182604+08:00",
+      "updated_at": "2026-03-24T10:35:09.477648+08:00"
+    },
+    {
+      "task_id": "task3",
+      "task_name": "实现 TTS 服务抽象层与 gen-audio-tts skill",
+      "task_file": "task3.md",
+      "status": "success",
+      "dependencies": [
+        "task1"
+      ],
+      "attempts": 0,
+      "commit_hash": "df83b0e93622a18a665ce5c6e36cb12a991b803b",
+      "created_at": "2026-03-24T10:21:55.182604+08:00",
+      "updated_at": "2026-03-24T10:47:36.266711+08:00"
+    },
+    {
+      "task_id": "task4",
+      "task_name": "实现 fetch-assets skill：素材搜索（视频/图片/音乐）",
+      "task_file": "task4.md",
+      "status": "success",
+      "dependencies": [
+        "task1"
+      ],
+      "attempts": 0,
+      "commit_hash": "cb7afe1747999b1ccf016142ede115abf2f06604",
+      "created_at": "2026-03-24T10:21:55.182604+08:00",
+      "updated_at": "2026-03-24T11:00:32.063955+08:00"
+    },
+    {
+      "task_id": "task5",
+      "task_name": "实现 gen-assets skill：AI 素材生成（图片/视频/手绘图）",
+      "task_file": "task5.md",
+      "status": "success",
+      "dependencies": [
+        "task1"
+      ],
+      "attempts": 0,
+      "commit_hash": "90854d841707ba3f57e28a2b124b51e703f995d6",
+      "created_at": "2026-03-24T10:21:55.182604+08:00",
+      "updated_at": "2026-03-24T11:13:38.963925+08:00"
+    },
+    {
+      "task_id": "task6",
+      "task_name": "实现 review-assets skill：HTML 交互审核界面",
+      "task_file": "task6.md",
+      "status": "success",
+      "dependencies": [
+        "task4",
+        "task5"
+      ],
+      "attempts": 0,
+      "commit_hash": "2c5fec3830c30d76d481c3724f41e59d626373f9",
+      "created_at": "2026-03-24T10:21:55.182604+08:00",
+      "updated_at": "2026-03-24T11:19:24.020054+08:00"
+    },
+    {
+      "task_id": "task7",
+      "task_name": "实现 compose-video skill：FFmpeg 视频合成",
+      "task_file": "task7.md",
+      "status": "success",
+      "dependencies": [
+        "task3",
+        "task6"
+      ],
+      "attempts": 0,
+      "commit_hash": "12177b234dca6685abfc4613e21e979b1af88fec",
+      "created_at": "2026-03-24T10:21:55.182604+08:00",
+      "updated_at": "2026-03-24T11:24:41.827556+08:00"
+    },
+    {
+      "task_id": "task8",
+      "task_name": "端到端集成测试：用《程序员消亡史》验证完整流水线",
+      "task_file": "task8.md",
+      "status": "success",
+      "dependencies": [
+        "task2",
+        "task3",
+        "task4",
+        "task5",
+        "task6",
+        "task7"
+      ],
+      "attempts": 0,
+      "commit_hash": "db4fac1f36d56db03a99f0a0efe04152d6fe9089",
+      "created_at": "2026-03-24T10:21:55.182604+08:00",
+      "updated_at": "2026-03-24T11:35:47.065423+08:00"
+    }
+  ]
+}
