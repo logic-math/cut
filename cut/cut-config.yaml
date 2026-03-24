@@ -1,0 +1,81 @@
+# cut-config.yaml — AI Service Provider Configuration
+# Edit this file to switch providers for each service type.
+
+tts:
+  provider: edge_tts  # edge_tts | openai | elevenlabs | azure
+  voice: zh-CN-XiaoxiaoNeural
+  # openai settings (used when provider: openai)
+  openai_voice: alloy
+  # elevenlabs settings (used when provider: elevenlabs)
+  elevenlabs_voice_id: ""
+  # azure settings (used when provider: azure)
+  azure_voice: zh-CN-XiaoxiaoNeural
+
+image_generation:
+  provider: dalle3  # dalle3 | stable_diffusion | stability_ai
+  # dalle3 settings
+  dalle3_model: dall-e-3
+  dalle3_size: 1792x1024
+  dalle3_quality: standard
+  # stability_ai settings
+  stability_engine: stable-diffusion-xl-1024-v1-0
+
+video_generation:
+  provider: runway  # runway | kling_fal
+  # runway settings
+  runway_model: gen3a_turbo
+  runway_duration: 5
+  # kling_fal settings
+  kling_model: kling-video/v1/standard/text-to-video
+
+stock_video:
+  providers:
+    - pexels
+    - pixabay
+  # pexels settings
+  pexels_per_page: 10
+  pexels_orientation: landscape
+  # pixabay settings
+  pixabay_per_page: 10
+  pixabay_video_type: film
+
+stock_image:
+  providers:
+    - pexels
+    - pixabay
+  # pexels settings
+  pexels_per_page: 10
+  pexels_orientation: landscape
+  # pixabay settings
+  pixabay_per_page: 10
+  pixabay_image_type: photo
+
+music:
+  providers:
+    - jamendo
+    - pixabay
+  fallback_generation: musicgen  # local MusicGen fallback
+  # jamendo settings
+  jamendo_limit: 10
+  # musicgen settings
+  musicgen_model: facebook/musicgen-small
+  musicgen_duration: 30
+
+handraw:
+  # handraw_chart: LLM → SVG → PNG (via cairosvg)
+  chart_provider: svg  # svg (cairosvg) | mermaid
+  chart_llm_model: gpt-4o
+  chart_output_format: png
+  chart_dpi: 150
+  # handraw_illustration: DALL-E 3 with hand-drawn style prompt
+  illustration_provider: dalle3
+  illustration_style_prompt: "hand-drawn illustration style, sketch, black and white line art, educational diagram"
+  illustration_size: 1792x1024
+
+output:
+  default_format: mp4
+  default_resolution: 1920x1080
+  default_fps: 30
+  ffmpeg_codec_video: libx264
+  ffmpeg_codec_audio: aac
+  ffmpeg_crf: 23

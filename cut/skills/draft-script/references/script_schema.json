@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cut Script Schema",
+  "description": "Schema for the cut audio-visual script format",
+  "type": "object",
+  "required": ["title", "total_duration", "output_format", "resolution", "pipeline_state", "scenes"],
+  "properties": {
+    "title": {"type": "string"},
+    "total_duration": {"type": "number"},
+    "output_format": {"type": "string", "enum": ["mp4", "mov", "webm"]},
+    "resolution": {"type": "string"},
+    "pipeline_state": {
+      "type": "string",
+      "enum": ["draft", "script_reviewed", "assets_fetched", "assets_reviewed", "tts_done", "composed"]
+    },
+    "scenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "duration", "narration", "visual", "audio"],
+        "properties": {
+          "id": {"type": "string"},
+          "duration": {"type": "number"},
+          "narration": {"type": "string"},
+          "subtitle": {"type": "string"},
+          "visual": {
+            "type": "object",
+            "properties": {
+              "type": {"type": "string", "enum": ["video", "image", "handraw_chart", "handraw_illustration"]},
+              "description": {"type": "string"},
+              "keywords": {"type": "array", "items": {"type": "string"}},
+              "status": {"type": "string", "enum": ["pending", "candidates_ready", "approved", "generating", "ready"]},
+              "selected_candidate": {},
+              "candidates": {"type": "array"},
+              "asset_path": {}
+            }
+          },
+          "audio": {
+            "type": "object",
+            "properties": {
+              "narration_status": {"type": "string", "enum": ["pending", "ready"]},
+              "narration_path": {},
+              "music": {"type": "object"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
