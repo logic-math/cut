@@ -1,3 +1,43 @@
+## task6: 实现 review-assets skill：HTML 交互审核界面
+
+**分析过程 (Analysis)**:
+- 读取了 `tests/task6.py`，明确 6 个测试要求：
+  1. `generate_review.py` 存在且非 stub
+  2. 生成的 HTML 包含所有 10 个场景 ID 及候选素材 URL
+  3. HTML 包含 `<video>` 标签（视频候选）和 `<audio>` 标签（音乐候选）
+  4. HTML 包含保存按钮、`selected_candidate` 引用、`approved` 状态、`generating` 标记
+  5. HTML 包含 write-back 机制（script.json 路径或 fetch/download）及 `pipeline_state` 更新
+  6. HTML 能反映已有的 `selected_candidate`/`status` 值（状态恢复）
+  7. 静态分析：`generate_review.py` 读取 `json`、写 HTML、引用 `candidates`、含 `status`/`pipeline_state`
+- 设计方案：`generate_review.py` 将整个 `script.json` 数据嵌入 HTML 中（JSON.stringify），
+  JS 在浏览器端渲染场景卡片、处理选择/AI标记交互、保存时优先 POST `/save_script`，
+  失败则 download `script.json`
+- 关键约束：HTML 必须是纯静态文件（无需服务器），save 通过 download 实现
+
+**实现步骤 (Implementation)**:
+1. 实现 `generate_review.py`：读取 script.json → 将数据 JSON.stringify 嵌入 HTML_TEMPLATE → 写出 review.html
+2. HTML_TEMPLATE 包含完整 CSS（暗色主题）、JS 逻辑：
+   - `renderScene()`：渲染场景卡片，含 visual 候选 + music 候选
+   - `renderCandidate()`：根据 type 渲染 `<img>`/`<video>`/`<audio>`
+   - `selectCandidate()`：更新 scenes 数组 + DOM（selected_candidate, status=approved）
+   - `toggleAiGen()`：切换 generating 状态
+   - `saveReview()`：先尝试 fetch POST，失败则 download
+   - `init()`：页面加载时渲染所有场景（自动恢复已有状态）
+3. 更新 `SKILL.md`：完整使用说明、字段更新说明、两种审核模式
+
+**遇到的问题 (Issues)**:
+- 无
+
+**验证结果 (Verification)**:
+- 测试命令：`python3 .rick/jobs/job_1/doing/tests/task6.py`
+- 测试输出：
+  ```
+  {"pass": true, "errors": []}
+  ```
+- 结论：✅ 通过
+
+---
+
 ## task5: 实现 gen-assets skill：AI 素材生成（图片/视频/手绘图）
 
 **分析过程 (Analysis)**:
