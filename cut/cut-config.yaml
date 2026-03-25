@@ -1,41 +1,73 @@
 # cut-config.yaml — AI Service Provider Configuration
 # Edit this file to switch providers for each service type.
 
+# ─────────────────────────────────────────────────────────
+# pipeline: 选择视频生成方式
+#   manim   — 默认。Manim CE 动画 + edge-tts 配音。
+#             效果最好，适合知识讲解类视频。需要 ~/manim-env。
+#   ffmpeg  — 传统方式。Pexels/Pixabay 素材 + FFmpeg 合成。
+#             适合快速出片，依赖素材库。
+# ─────────────────────────────────────────────────────────
+pipeline: manim
+
+# ─────────────────────────────────────────────────────────
+# Manim Pipeline 配置（pipeline: manim 时生效）
+# ─────────────────────────────────────────────────────────
+manim:
+  # Python 解释器路径（必须是安装了 manim 的 venv）
+  python: "~/manim-env/bin/python3.12"
+  # manim CLI 路径
+  cli: "~/manim-env/bin/manim"
+  # 渲染质量: l(ow)/m(edium)/h(igh)/k(4K)
+  quality: h
+  # 背景色（Manim 颜色名或 hex）
+  background_color: "#0D1117"
+  # 默认字体（中文必须指定支持 CJK 的字体）
+  font: "STHeiti"
+  # 代码风格颜色
+  accent_color: "#58A6FF"
+  code_color: "#00FF41"
+  warn_color: "#F0883E"
+
+# ─────────────────────────────────────────────────────────
+# TTS 配置（两种 pipeline 均使用）
+# ─────────────────────────────────────────────────────────
 tts:
   provider: edge_tts  # edge_tts | openai | elevenlabs | azure
-  voice: zh-CN-XiaoxiaoNeural
+  # edge-tts 语音列表（运行 `edge-tts --list-voices | grep zh-CN` 查看所有选项）
+  voice: zh-CN-YunxiNeural        # 男声，适合知识讲解
+  # voice: zh-CN-XiaoxiaoNeural   # 女声
+  # voice: zh-CN-YunyangNeural    # 新闻男声
+  # voice: zh-CN-XiaoyiNeural     # 活泼女声
   # openai settings (used when provider: openai)
   openai_voice: alloy
   # elevenlabs settings (used when provider: elevenlabs)
   elevenlabs_voice_id: ""
   # azure settings (used when provider: azure)
-  azure_voice: zh-CN-XiaoxiaoNeural
+  azure_voice: zh-CN-YunxiNeural
 
+# ─────────────────────────────────────────────────────────
+# FFmpeg Pipeline 配置（pipeline: ffmpeg 时生效）
+# ─────────────────────────────────────────────────────────
 image_generation:
   provider: dalle3  # dalle3 | stable_diffusion | stability_ai
-  # dalle3 settings
   dalle3_model: dall-e-3
   dalle3_size: 1792x1024
   dalle3_quality: standard
-  # stability_ai settings
   stability_engine: stable-diffusion-xl-1024-v1-0
 
 video_generation:
   provider: runway  # runway | kling_fal
-  # runway settings
   runway_model: gen3a_turbo
   runway_duration: 5
-  # kling_fal settings
   kling_model: kling-video/v1/standard/text-to-video
 
 stock_video:
   providers:
     - pexels
     - pixabay
-  # pexels settings
   pexels_per_page: 10
   pexels_orientation: landscape
-  # pixabay settings
   pixabay_per_page: 10
   pixabay_video_type: film
 
@@ -43,10 +75,8 @@ stock_image:
   providers:
     - pexels
     - pixabay
-  # pexels settings
   pexels_per_page: 10
   pexels_orientation: landscape
-  # pixabay settings
   pixabay_per_page: 10
   pixabay_image_type: photo
 
@@ -54,28 +84,27 @@ music:
   providers:
     - jamendo
     - pixabay
-  fallback_generation: musicgen  # local MusicGen fallback
-  # jamendo settings
+  fallback_generation: musicgen
   jamendo_limit: 10
-  # musicgen settings
   musicgen_model: facebook/musicgen-small
   musicgen_duration: 30
 
 handraw:
-  # handraw_chart: LLM → SVG → PNG (via cairosvg)
-  chart_provider: svg  # svg (cairosvg) | mermaid
+  chart_provider: svg
   chart_llm_model: gpt-4o
   chart_output_format: png
   chart_dpi: 150
-  # handraw_illustration: DALL-E 3 with hand-drawn style prompt
   illustration_provider: dalle3
   illustration_style_prompt: "hand-drawn illustration style, sketch, black and white line art, educational diagram"
   illustration_size: 1792x1024
 
+# ─────────────────────────────────────────────────────────
+# 输出配置
+# ─────────────────────────────────────────────────────────
 output:
   default_format: mp4
   default_resolution: 1920x1080
-  default_fps: 30
+  default_fps: 24
   ffmpeg_codec_video: libx264
   ffmpeg_codec_audio: aac
   ffmpeg_crf: 23

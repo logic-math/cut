@@ -1,7 +1,7 @@
 ---
 name: cut
-version: "0.1.0"
-description: 将文字讲稿转化为视频。当用户提到"把讲稿/文章做成视频"、"生成视频脚本"、"合成视频"、"视频制作流水线"、"cut 技能包"时使用。执行完整流水线：讲稿 → 视听脚本 → TTS 旁白 → 素材搜索/生成 → 人工审核 → FFmpeg 合成 → 最终 MP4。
+version: "0.2.0"
+description: 将文字讲稿转化为视频。当用户提到"把讲稿/文章做成视频"、"生成视频脚本"、"合成视频"、"视频制作流水线"、"cut 技能包"时使用。默认使用 Manim CE + manim-voiceover + edge-tts 生成动画讲解视频。
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
@@ -10,6 +10,8 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ## 你的任务
 
 用户想把一篇文字讲稿制作成视频。**在执行任何流水线步骤之前，先完成环境检测和配置引导。**
+
+默认使用 **Manim pipeline**（动画质量最高），可在 `cut-config.yaml` 中切换为 `ffmpeg` pipeline（传统素材拼接）。
 
 ---
 
@@ -30,86 +32,80 @@ python3 "$SKILL_DIR/scripts/check_env.py"
 cat "$SKILL_DIR/cut-config.yaml"
 ```
 
-### 3. 检测已配置的 API Key
+重点关注 `pipeline` 字段（`manim` 或 `ffmpeg`）和 `tts.voice`。
+
+### 3. 检测 Manim 环境
 
 ```bash
+# 检查 manim venv
+ls ~/manim-env/bin/manim 2>/dev/null && echo "✓ Manim 已安装" || echo "✗ Manim 未安装"
+~/manim-env/bin/manim --version 2>/dev/null || true
+
+# 检查 API Keys
 echo "ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:+已设置}"
 echo "OPENAI_API_KEY=${OPENAI_API_KEY:+已设置}"
 echo "PEXELS_API_KEY=${PEXELS_API_KEY:+已设置}"
-echo "PIXABAY_API_KEY=${PIXABAY_API_KEY:+已设置}"
-echo "JAMENDO_API_KEY=${JAMENDO_API_KEY:+已设置}"
-echo "RUNWAY_API_KEY=${RUNWAY_API_KEY:+已设置}"
-echo "ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY:+已设置}"
 ```
 
-### 4. 向用户展示配置状态并询问意愿
+### 4. 向用户展示配置状态
 
-根据检测结果，向用户展示一张配置状态表，格式如下：
+根据检测结果展示：
 
 ```
 当前配置状态：
 
-功能              状态        说明
-────────────────────────────────────────────────────────
-脚本生成 (TTS)    ✓ 可用      edge-tts（免费，无需 Key）
-脚本生成 (AI)     ✗ 未配置    需要 ANTHROPIC_API_KEY（更高质量）
-图片素材搜索      ✗ 未配置    需要 PEXELS_API_KEY 或 PIXABAY_API_KEY
-音乐素材搜索      ✗ 未配置    需要 JAMENDO_API_KEY
-AI 图片生成       ✗ 未配置    需要 OPENAI_API_KEY
-AI 视频生成       ✗ 未配置    需要 RUNWAY_API_KEY
-手绘图生成        ✓ 可用      纯 Python，无需 Key
-视频合成          ✓ 可用      FFmpeg，无需 Key
+功能                  状态        说明
+──────────────────────────────────────────────────────────
+Manim 动画引擎        ✓/✗         ~/manim-env/bin/manim
+TTS 配音 (edge-tts)   ✓ 可用      免费，无需 Key
+脚本生成 (AI)         ✓/✗         需要 ANTHROPIC_API_KEY（更高质量）
+图片素材 (ffmpeg模式) ✓/✗         需要 PEXELS_API_KEY
+当前 pipeline         manim       在 cut-config.yaml 中修改
+当前 TTS 语音         zh-CN-YunxiNeural（男声）
 ```
 
-然后询问：
-> "以上是当前配置状态。没有配置的功能会跳过或使用免费替代方案。
-> 是否需要现在配置某些 API Key？还是直接用现有配置开始制作？"
-
-### 5. 如果用户想配置 API Key
-
-逐项引导，对每个用户想配置的 Key：
-
-1. 告知获取地址（见下方"API Key 获取地址"）
-2. 用户提供 Key 后，引导写入 shell 配置文件：
+### 5. 如果 Manim 未安装，引导安装
 
 ```bash
-# 写入 ~/.zshrc 或 ~/.bashrc（持久化）
-echo 'export ANTHROPIC_API_KEY="用户提供的key"' >> ~/.zshrc
-source ~/.zshrc
+# 安装 Python 3.12
+brew install python@3.12
+
+# 创建 venv
+python3.12 -m venv ~/manim-env
+
+# 安装 manim 套件
+PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig" \
+  ~/manim-env/bin/pip install manim "manim-voiceover[edge]" edge-tts
+~/manim-env/bin/pip install "setuptools<71"
+
+# 验证
+~/manim-env/bin/manim --version
 ```
 
-3. 验证生效：
-```bash
-echo $ANTHROPIC_API_KEY
-```
+### 6. 如果用户想修改配置
 
-**API Key 获取地址：**
+直接编辑 `$SKILL_DIR/cut-config.yaml`：
+- **切换 pipeline**：`pipeline: ffmpeg`
+- **切换 TTS 语音**：`tts.voice: zh-CN-XiaoxiaoNeural`（女声）
+- **切换渲染质量**：`manim.quality: l`（低质量预览）
 
-| Key | 获取地址 | 费用 |
-|-----|---------|------|
-| `ANTHROPIC_API_KEY` | console.anthropic.com | 按用量付费 |
-| `OPENAI_API_KEY` | platform.openai.com | 按用量付费 |
-| `PEXELS_API_KEY` | pexels.com/api | 免费 |
-| `PIXABAY_API_KEY` | pixabay.com/api | 免费 |
-| `JAMENDO_API_KEY` | developer.jamendo.com | 免费 |
-| `RUNWAY_API_KEY` | runwayml.com | 按用量付费 |
-| `ELEVENLABS_API_KEY` | elevenlabs.io | 免费额度+付费 |
-
-### 6. 如果用户想修改服务商配置
-
-读取并展示 `cut-config.yaml` 的关键配置项，询问是否需要修改：
-
-- **TTS 语音**：当前 `tts.voice`，可改为其他 edge-tts 语音（如 `zh-CN-YunxiNeural` 男声）
-- **视频分辨率**：当前 `output.default_resolution`
-- **图片生成服务商**：当前 `image_generation.provider`
-
-用户确认修改后，直接编辑 `$SKILL_DIR/cut-config.yaml` 对应字段。
+**常用 edge-tts 中文语音：**
+| 语音 | 特点 |
+|------|------|
+| `zh-CN-YunxiNeural` | 男声，知识讲解（默认） |
+| `zh-CN-XiaoxiaoNeural` | 女声，温柔 |
+| `zh-CN-YunyangNeural` | 男声，新闻播报风格 |
+| `zh-CN-XiaoyiNeural` | 女声，活泼 |
 
 ---
 
 ## 阶段二：执行流水线
 
-配置确认完成后，开始执行。**每步完成后向用户确认再继续。**
+配置确认完成后，读取 `cut-config.yaml` 中的 `pipeline` 字段，选择对应流水线执行。
+
+---
+
+## Manim Pipeline（默认，`pipeline: manim`）
 
 ### Step 1：确认输入
 
@@ -121,17 +117,86 @@ echo $ANTHROPIC_API_KEY
 ### Step 2：生成视听脚本
 
 ```bash
+SKILL_DIR="$HOME/.claude/skills/cut"
 python3 "$SKILL_DIR/skills/draft-script/scripts/draft_script.py" \
   --input <讲稿路径> \
   --project <项目名> \
   --workspace-base <输出目录>
 ```
 
-完成后读取 `script_preview.md` 展示场景列表给用户，询问是否满意。
+完成后读取 `script_preview.md` 展示场景列表给用户。
+
+**重要**：脚本生成后，**由 Claude 直接根据 script.json 为每个场景生成 Manim 动画代码**，不依赖外部 API。每个场景的 `visual.type` 和 `visual.description` 是生成代码的主要依据：
+
+- `handraw_chart` → 生成图表/时间轴/对比图等 Manim 动画
+- `handraw_illustration` → 生成示意图/流程图等
+- `video` / `image` → 生成文字动画 + 背景效果
+
+### Step 3：生成 Manim 代码
+
+**Claude 直接生成 Manim 代码**，不调用任何外部 LLM API。
+
+先用 `gen_manim_code.py` 生成基础框架：
+
+```bash
+SKILL_DIR="$HOME/.claude/skills/cut"
+python3 "$SKILL_DIR/skills/manim-render/scripts/gen_manim_code.py" \
+  --script <script.json路径> \
+  --output <workspace目录>/scenes.py \
+  --config "$SKILL_DIR/cut-config.yaml"
+```
+
+然后 **Claude 读取 script.json 中每个场景的内容，直接改写 scenes.py**，为每个场景生成真正有意义的 Manim 动画：
+
+- 时间轴场景 → `Line` + `Dot` + `Text` 动画
+- 对比图场景 → 左右两栏 + `Arrow` 连接
+- 层次图场景 → 叠加 `Rectangle` + 标注
+- 数据图场景 → `BarChart` 或自定义条形图
+- 文字场景 → `Write` + `FadeIn` 动画序列
+
+生成代码时遵循以下规范：
+1. 每个场景继承 `VoiceoverScene`
+2. `with self.voiceover(text="...")` 包裹动画
+3. 场景结尾 `FadeOut` 所有元素
+4. 中文文字用 `Text(..., font="STHeiti")`
+5. 数学公式用 `MathTex`
+
+### Step 4：TTS 旁白（manim-voiceover 自动处理）
+
+manim-voiceover 在渲染时自动调用 edge-tts 生成配音，无需单独步骤。
+
+TTS 语音由 `cut-config.yaml` 中的 `tts.voice` 控制。
+
+### Step 5：渲染视频
+
+```bash
+SKILL_DIR="$HOME/.claude/skills/cut"
+
+# 先低画质预览第一个场景
+~/manim-env/bin/manim -ql <workspace目录>/scenes.py <Scene01ClassName>
+
+# 确认效果后批量渲染所有场景
+python3 "$SKILL_DIR/skills/manim-render/scripts/render_manim.py" \
+  --script <script.json路径> \
+  --manim-file <workspace目录>/scenes.py \
+  --output <workspace目录>/output/final.mp4 \
+  --config "$SKILL_DIR/cut-config.yaml"
+```
+
+完成后展示输出路径和视频时长。
+
+---
+
+## FFmpeg Pipeline（`pipeline: ffmpeg`）
+
+### Step 1：确认输入（同上）
+
+### Step 2：生成视听脚本（同上）
 
 ### Step 3：生成 TTS 旁白
 
 ```bash
+SKILL_DIR="$HOME/.claude/skills/cut"
 python3 "$SKILL_DIR/skills/gen-assets/scripts/gen_tts.py" \
   --script <script.json路径> \
   --workspace <workspace目录>
@@ -140,15 +205,17 @@ python3 "$SKILL_DIR/skills/gen-assets/scripts/gen_tts.py" \
 ### Step 4：搜索素材（有 PEXELS/PIXABAY Key 时执行）
 
 ```bash
-python3 "$SKILL_DIR/skills/fetch-assets/scripts/fetch_assets.py" <script.json路径>
+python3 "$SKILL_DIR/skills/fetch-assets/scripts/fetch_assets.py" \
+  --script <script.json路径> \
+  --workspace <workspace目录>
 ```
 
-无 Key 时告知用户跳过，后续合成将使用黑色填充帧代替视频素材。
+无 Key 时跳过，后续合成使用黑色填充帧。
 
 ### Step 5：生成 AI 素材
 
 ```bash
-# 手绘图（始终可用，无需 Key）
+# 手绘图（始终可用）
 python3 "$SKILL_DIR/skills/gen-assets/scripts/gen_handraw.py" \
   --script <script.json路径> --workspace <workspace目录>
 
@@ -163,8 +230,6 @@ python3 "$SKILL_DIR/skills/gen-assets/scripts/gen_image.py" \
 python3 "$SKILL_DIR/skills/review-assets/scripts/generate_review.py" <script.json路径>
 ```
 
-生成 `review.html`，告知用户在浏览器打开审核，保存后继续。
-
 ### Step 7：合成最终视频
 
 ```bash
@@ -176,31 +241,33 @@ python3 "$SKILL_DIR/skills/compose-video/scripts/compose.py" \
   --no-interactive
 ```
 
-完成后展示输出路径，并用 `ffprobe` 显示视频时长和分辨率。
-
 ---
 
 ## 关键路径
 
-- **skill 根目录**: `~/.claude/skills/cut/`
+- **skill 根目录**: `~/.claude/skills/cut/`（软链接到源码仓库）
 - **配置文件**: `~/.claude/skills/cut/cut-config.yaml`
 - **环境检测**: `scripts/check_env.py`
 - **讲稿转脚本**: `skills/draft-script/scripts/draft_script.py`
-- **TTS 旁白**: `skills/gen-assets/scripts/gen_tts.py`
+- **Manim 代码生成框架**: `skills/manim-render/scripts/gen_manim_code.py`
+- **Manim 批量渲染**: `skills/manim-render/scripts/render_manim.py`
+- **TTS 旁白（ffmpeg模式）**: `skills/gen-assets/scripts/gen_tts.py`
 - **素材搜索**: `skills/fetch-assets/scripts/fetch_assets.py`
 - **手绘图**: `skills/gen-assets/scripts/gen_handraw.py`
 - **AI 图片**: `skills/gen-assets/scripts/gen_image.py`
 - **审核页面**: `skills/review-assets/scripts/generate_review.py`
-- **视频合成**: `skills/compose-video/scripts/compose.py`
+- **视频合成（ffmpeg模式）**: `skills/compose-video/scripts/compose.py`
 
 ## pipeline_state 状态
 
 | 状态 | 含义 |
 |------|------|
 | `draft` | 脚本已生成 |
-| `assets_fetched` | 素材搜索完成 |
-| `tts_done` | TTS 旁白完成 |
-| `assets_reviewed` | 素材审核完成 |
+| `manim_code_generated` | Manim 代码已生成（manim pipeline） |
+| `manim_rendered` | Manim 渲染完成（manim pipeline） |
+| `assets_fetched` | 素材搜索完成（ffmpeg pipeline） |
+| `tts_done` | TTS 旁白完成（ffmpeg pipeline） |
+| `assets_reviewed` | 素材审核完成（ffmpeg pipeline） |
 | `composed` | 视频合成完成 |
 
 如果用户想从中间某步继续，读取 `script.json` 的 `pipeline_state` 判断从哪里接着执行。
