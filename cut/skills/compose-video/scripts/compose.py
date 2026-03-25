@@ -31,6 +31,12 @@ import tempfile
 import shutil
 from pathlib import Path
 
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+
 
 # ---------------------------------------------------------------------------
 # Resolution presets
@@ -110,6 +116,148 @@ def generate_srt(scenes, srt_path):
     return srt_path
 
 
+def _find_cjk_font():
+    """Find a CJK-capable font on the system. Returns path or None."""
+    candidates = [
+        # macOS
+        '/System/Library/Fonts/STHeiti Medium.ttc',
+        '/System/Library/Fonts/PingFang.ttc',
+        '/Library/Fonts/Arial Unicode.ttf',
+        # Linux
+        '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
+        '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
+        '/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc',
+        # Windows
+        'C:/Windows/Fonts/msyh.ttc',
+        'C:/Windows/Fonts/simsun.ttc',
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return p
+    # Try fc-list as fallback
+    try:
+        result = subprocess.run(
+            ['fc-list', ':lang=zh', '--format=%{file}\n'],
+            capture_output=True, text=True, timeout=5
+        )
+        for line in result.stdout.strip().split('\n'):
+            path = line.strip().split(':')[0]
+            if path and os.path.exists(path):
+                return path
+    except Exception:
+        pass
+    return None
+
+
+def burn_subtitles_pil(input_video, output_video, scenes, width, height):
+    """
+    Burn subtitles into video using PIL overlay images + ffmpeg overlay filter.
+    Each scene gets its subtitle text rendered as a semi-transparent PNG overlay.
+    Falls back to copy if PIL is unavailable.
+    """
+    if not HAS_PIL:
+        shutil.copy2(input_video, output_video)
+        print('Warning: PIL not available, skipping subtitle burn.', file=sys.stderr)
+        return
+
+    font_path = _find_cjk_font()
+    font_size = max(24, height // 22)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Build a list of (start_time, duration, text) entries
+        entries = []
+        t = 0.0
+        for scene in scenes:
+            dur = float(scene.get('duration', 5))
+            subtitle = scene.get('subtitle', '').strip()
+            if subtitle:
+                entries.append((t, dur, subtitle))
+            t += dur
+
+        if not entries:
+            shutil.copy2(input_video, output_video)
+            return
+
+        # Build ffmpeg filter_complex using overlay + enable expressions
+        # For each subtitle, create a PNG image and overlay it at the right time
+        overlay_inputs = []
+        filter_parts = []
+        prev_label = '0:v'
+
+        for idx, (start, dur, text) in enumerate(entries):
+            # Render subtitle image with PIL
+            img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+
+            try:
+                font = ImageFont.truetype(font_path, font_size) if font_path else ImageFont.load_default()
+            except Exception:
+                font = ImageFont.load_default()
+
+            # Word-wrap long text
+            max_chars = width // (font_size // 2 + 2)
+            if len(text) > max_chars:
+                # Simple wrap at max_chars
+                wrapped = []
+                while len(text) > max_chars:
+                    wrapped.append(text[:max_chars])
+                    text = text[max_chars:]
+                wrapped.append(text)
+                text = '\n'.join(wrapped)
+
+            # Measure text
+            bbox = draw.textbbox((0, 0), text, font=font)
+            tw = bbox[2] - bbox[0]
+            th = bbox[3] - bbox[1]
+            x = (width - tw) // 2
+            y = height - th - int(height * 0.06)
+
+            # Draw shadow
+            draw.text((x + 2, y + 2), text, font=font, fill=(0, 0, 0, 180))
+            # Draw text
+            draw.text((x, y), text, font=font, fill=(255, 255, 255, 230))
+
+            overlay_path = os.path.join(tmpdir, f'sub_{idx:03d}.png')
+            img.save(overlay_path)
+            overlay_inputs.extend(['-i', overlay_path])
+
+            in_label = prev_label
+            out_label = f'v{idx}'
+            # overlay input index: video=0, then each overlay is 1+idx
+            ov_idx = 1 + idx
+            filter_parts.append(
+                f'[{in_label}][{ov_idx}:v]overlay=0:0:'
+                f'enable=\'between(t,{start:.3f},{start+dur:.3f})\''
+                f'[{out_label}]'
+            )
+            prev_label = out_label
+
+        filter_complex = ';'.join(filter_parts)
+
+        cmd = [
+            'ffmpeg', '-y',
+            '-i', input_video,
+        ] + overlay_inputs + [
+            '-filter_complex', filter_complex,
+            '-map', f'[{prev_label}]',
+            '-map', '0:a',
+            '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+            '-c:a', 'copy',
+            output_video,
+        ]
+
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode != 0:
+            print(
+                f'Warning: PIL subtitle burn failed, copying without subtitles.\n'
+                f'Error: {result.stderr.decode(errors="replace")[-300:]}',
+                file=sys.stderr
+            )
+            shutil.copy2(input_video, output_video)
+        else:
+            print('  Subtitles burned successfully.', file=sys.stderr)
+
+
 # ---------------------------------------------------------------------------
 # Per-scene video segment building
 # ---------------------------------------------------------------------------
@@ -124,6 +272,10 @@ def build_scene_segment(scene, width, height, fps, tmpdir, scene_idx):
     asset_path = visual.get('asset_path') or ''
 
     out_path = os.path.join(tmpdir, f'seg_{scene_idx:03d}.mp4')
+
+    # Normalize handraw subtypes
+    if vtype in ('handraw_chart', 'handraw_illustration'):
+        vtype = 'handraw'
 
     if vtype == 'video' and asset_path and os.path.exists(asset_path):
         clip_dur = ffprobe_duration(asset_path)
@@ -284,7 +436,7 @@ def build_scene_audio(scene, scene_dur, tmpdir, scene_idx):
 # ---------------------------------------------------------------------------
 # Concatenation
 # ---------------------------------------------------------------------------
-def concat_segments(video_segments, audio_segments, output_path, width, height, fps, srt_path):
+def concat_segments(video_segments, audio_segments, output_path, width, height, fps, srt_path, scenes=None):
     """Concatenate all scene segments (video + audio) into final output."""
     assert len(video_segments) == len(audio_segments)
     n = len(video_segments)
@@ -332,28 +484,9 @@ def concat_segments(video_segments, audio_segments, output_path, width, height, 
                 + result.stderr.decode(errors='replace')[-500:]
             )
 
-        # Burn subtitles if SRT exists and has content
-        if srt_path and os.path.exists(srt_path) and os.path.getsize(srt_path) > 0:
-            # Use drawtext via subtitles filter
-            # Escape path for FFmpeg filter
-            escaped_srt = srt_path.replace('\\', '/').replace(':', '\\:')
-            cmd = [
-                'ffmpeg', '-y',
-                '-i', raw_output,
-                '-vf', f"subtitles='{escaped_srt}'",
-                '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
-                '-c:a', 'copy',
-                output_path,
-            ]
-            result = subprocess.run(cmd, capture_output=True)
-            if result.returncode != 0:
-                # subtitle burning failed (e.g. libass not available) — copy without subtitles
-                print(
-                    f'Warning: subtitle burning failed, outputting without subtitles. '
-                    f'Error: {result.stderr.decode(errors="replace")[-200:]}',
-                    file=sys.stderr
-                )
-                shutil.copy2(raw_output, output_path)
+        # Burn subtitles using PIL overlay (works without libass/libfreetype in ffmpeg)
+        if scenes and srt_path and os.path.exists(srt_path) and os.path.getsize(srt_path) > 0:
+            burn_subtitles_pil(raw_output, output_path, scenes, width, height)
         else:
             shutil.copy2(raw_output, output_path)
 
@@ -395,7 +528,7 @@ def compose(script_path, output_path, width, height, fps, music_volume_default=0
             audio_segments.append(aseg)
 
         print(f'  Concatenating {len(scenes)} segments...', file=sys.stderr)
-        concat_segments(video_segments, audio_segments, output_path, width, height, fps, srt_path)
+        concat_segments(video_segments, audio_segments, output_path, width, height, fps, srt_path, scenes=scenes)
 
     # Update pipeline_state in script.json
     script['pipeline_state'] = 'composed'
