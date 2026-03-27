@@ -73,7 +73,18 @@ def generate_scene_code(scene: dict, manim_cfg: dict, tts_cfg: dict, scene_idx: 
     tts_voice = tts_cfg.get("voice", "zh-CN-YunxiNeural")
 
     # TTS service setup
-    if tts_provider == "edge_tts":
+    if tts_provider == "fish_audio":
+        api_key = tts_cfg.get("fish_audio_api_key", "")
+        voice_id = tts_cfg.get("fish_audio_voice_id", "")
+        model = tts_cfg.get("fish_audio_model", "s2-pro")
+        bitrate = tts_cfg.get("fish_audio_mp3_bitrate", 192)
+        tts_import = "from manim_voiceover.services.fish_audio import FishAudioService"
+        tts_init = (
+            f'self.set_speech_service(FishAudioService('
+            f'api_key="{api_key}", voice_id="{voice_id}", '
+            f'model="{model}", mp3_bitrate={bitrate}))'
+        )
+    elif tts_provider == "edge_tts":
         tts_import = "from manim_voiceover.services.edge import EdgeTTSService"
         tts_init = f'self.set_speech_service(EdgeTTSService(voice="{tts_voice}"))'
     elif tts_provider == "openai":
@@ -84,8 +95,8 @@ def generate_scene_code(scene: dict, manim_cfg: dict, tts_cfg: dict, scene_idx: 
         tts_import = "from manim_voiceover.services.gtts import GTTSService"
         tts_init = 'self.set_speech_service(GTTSService(lang="zh-TW"))'
     else:
-        tts_import = "from manim_voiceover.services.gtts import GTTSService"
-        tts_init = 'self.set_speech_service(GTTSService(lang="zh-TW"))'
+        tts_import = "from manim_voiceover.services.edge import EdgeTTSService"
+        tts_init = f'self.set_speech_service(EdgeTTSService(voice="{tts_voice}"))'
 
     # Generate visual body based on type
     visual_body = _generate_visual_body(
@@ -237,12 +248,14 @@ def generate_manim_file(script: dict, config: dict, output_path: str) -> None:
     tts_provider = tts_cfg.get("provider", "edge_tts")
     tts_voice = tts_cfg.get("voice", "zh-CN-YunxiNeural")
 
-    if tts_provider == "edge_tts":
+    if tts_provider == "fish_audio":
+        tts_import_line = "from manim_voiceover.services.fish_audio import FishAudioService"
+    elif tts_provider == "edge_tts":
         tts_import_line = "from manim_voiceover.services.edge import EdgeTTSService"
     elif tts_provider == "openai":
         tts_import_line = "from manim_voiceover.services.openai import OpenAITTSService"
     else:
-        tts_import_line = "from manim_voiceover.services.gtts import GTTSService"
+        tts_import_line = "from manim_voiceover.services.edge import EdgeTTSService"
 
     # Build scene class names list for __all__
     class_names = [scene_class_name(s.get("id", f"scene_{i:02d}")) for i, s in enumerate(scenes, 1)]
