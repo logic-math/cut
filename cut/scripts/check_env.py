@@ -122,14 +122,53 @@ def main():
         if not check_python_package(pkg, imp, pip):
             all_ok = False
 
+    print("\n[Manim Pipeline]")
+    manim_python = os.path.expanduser("~/manim-env/bin/python3.12")
+    manim_cli = os.path.expanduser("~/manim-env/bin/manim")
+    if os.path.exists(manim_cli):
+        try:
+            result = subprocess.run([manim_cli, "--version"], capture_output=True, text=True)
+            version = result.stdout.strip() or result.stderr.strip()
+            print(f"✓ Manim OK ({version})")
+        except Exception:
+            print("✓ Manim OK (version unknown)")
+    else:
+        print("✗ Manim not found at ~/manim-env/bin/manim")
+        print("  → python3.12 -m venv ~/manim-env")
+        print("  → PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig ~/manim-env/bin/pip install manim \"manim-voiceover[edge]\" edge-tts")
+        print("  → ~/manim-env/bin/pip install \"setuptools<71\"")
+
+    # Check manim-voiceover in manim-env
+    if os.path.exists(manim_python):
+        result = subprocess.run(
+            [manim_python, "-c", "import manim_voiceover; print(manim_voiceover.__version__)"],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            print(f"✓ manim-voiceover OK (version: {result.stdout.strip()})")
+        else:
+            print("✗ manim-voiceover not found in ~/manim-env")
+            print("  → ~/manim-env/bin/pip install manim-voiceover edge-tts")
+
+        # Check fish-audio-sdk in manim-env
+        result = subprocess.run(
+            [manim_python, "-c", "import fish_audio_sdk; print('ok')"],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            print("✓ fish-audio-sdk OK (in ~/manim-env)")
+        else:
+            print("✗ fish-audio-sdk not found in ~/manim-env")
+            print("  → ~/manim-env/bin/pip install fish-audio-sdk")
+
     print("\n[Optional Packages]")
     optional_packages = [
         ("Pillow", "PIL", "Pillow"),
         ("requests", "requests", "requests"),
         ("openai", "openai", "openai"),
+        ("fish-audio-sdk", "fish_audio_sdk", "fish-audio-sdk"),
     ]
     for pkg, imp, pip in optional_packages:
-        # Optional packages: warn but don't fail overall check
         check_python_package(pkg, imp, pip)
 
     print("\n" + "=" * 50)

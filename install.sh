@@ -46,21 +46,40 @@ MANIM_PIP="$HOME/manim-env/bin/pip"
 if [ -f "$MANIM_PYTHON" ]; then
   echo "  Found ~/manim-env, installing manim dependencies..."
   PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig" \
-    "$MANIM_PIP" install manim "manim-voiceover[edge]" edge-tts setuptools \
-    PyYAML cairosvg jsonschema --quiet 2>/dev/null \
-    && echo "✓ Manim dependencies installed in ~/manim-env" \
+    "$MANIM_PIP" install manim manim-voiceover edge-tts setuptools \
+    PyYAML cairosvg jsonschema fish-audio-sdk --quiet 2>/dev/null \
+    && echo "✓ Manim + Fish Audio dependencies installed in ~/manim-env" \
     || echo "⚠ Some manim packages failed — run manually in ~/manim-env"
-  # setuptools<71 for pkg_resources compatibility
+  # setuptools<71 for pkg_resources compatibility (manim-voiceover 0.3.7)
   "$MANIM_PIP" install "setuptools<71" --quiet 2>/dev/null || true
+
+  # Install EdgeTTSService adapter (not included in manim-voiceover 0.3.7)
+  EDGE_SVC="$HOME/manim-env/lib/python3.12/site-packages/manim_voiceover/services/edge.py"
+  if [ ! -f "$EDGE_SVC" ]; then
+    echo "  Installing EdgeTTSService adapter..."
+    cp "$CUT_DIR/skills/manim-render/adapters/edge.py" "$EDGE_SVC" 2>/dev/null \
+      && echo "✓ EdgeTTSService adapter installed" \
+      || echo "⚠ EdgeTTSService adapter not found — edge-tts may not work in Manim"
+  fi
+
+  # Install FishAudioService adapter
+  FISH_SVC="$HOME/manim-env/lib/python3.12/site-packages/manim_voiceover/services/fish_audio.py"
+  if [ ! -f "$FISH_SVC" ]; then
+    echo "  Installing FishAudioService adapter..."
+    cp "$CUT_DIR/skills/manim-render/adapters/fish_audio.py" "$FISH_SVC" 2>/dev/null \
+      && echo "✓ FishAudioService adapter installed" \
+      || echo "⚠ FishAudioService adapter not found"
+  fi
 else
   echo "  ~/manim-env not found. To use Manim pipeline, create it first:"
   echo "    python3.12 -m venv ~/manim-env"
-  echo "    ~/manim-env/bin/pip install manim manim-voiceover edge-tts"
+  echo "    PKG_CONFIG_PATH=/opt/homebrew/lib/pkgconfig ~/manim-env/bin/pip install manim manim-voiceover edge-tts fish-audio-sdk"
+  echo "    ~/manim-env/bin/pip install 'setuptools<71'"
 fi
 
 # 系统级依赖（非 Manim pipeline 也需要）
-pip3 install PyYAML edge-tts cairosvg jsonschema --quiet --break-system-packages 2>/dev/null \
-  || pip3 install PyYAML edge-tts cairosvg jsonschema --quiet 2>/dev/null \
+pip3 install PyYAML edge-tts cairosvg jsonschema fish-audio-sdk --quiet --break-system-packages 2>/dev/null \
+  || pip3 install PyYAML edge-tts cairosvg jsonschema fish-audio-sdk --quiet 2>/dev/null \
   || echo "⚠ System pip install failed — some features may not work"
 
 # 检查 FFmpeg
@@ -88,6 +107,10 @@ echo ""
 echo "Usage: In Claude Code, just say:"
 echo "  '帮我把 examples/programmer_extinction.md 做成视频'"
 echo ""
-echo "Default pipeline: Manim CE + manim-voiceover + edge-tts"
+echo "Default pipeline: Manim CE + manim-voiceover + Fish Audio (S2 Pro)"
 echo "  Manim python: $MANIM_PYTHON"
 echo "  Manim CLI:    $HOME/manim-env/bin/manim"
+echo ""
+echo "TTS配置 (cut-config.yaml):"
+echo "  provider: fish_audio  ← 推荐，音色克隆，需要 API Key"
+echo "  provider: edge_tts    ← 免费备用，无需 Key"

@@ -32,7 +32,16 @@ def get_provider(provider_name: str, config: dict):
     providers_dir = os.path.join(os.path.dirname(__file__), 'providers')
     sys.path.insert(0, os.path.dirname(__file__))
 
-    if provider_name == 'edge_tts':
+    if provider_name == 'fish_audio':
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            'tts_fish_audio', os.path.join(providers_dir, 'tts_fish_audio.py')
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.FishAudioTTSProvider(config)
+
+    elif provider_name == 'edge_tts':
         import importlib.util
         spec = importlib.util.spec_from_file_location(
             'tts_edge', os.path.join(providers_dir, 'tts_edge.py')
@@ -62,20 +71,22 @@ def get_provider(provider_name: str, config: dict):
     else:
         raise ValueError(
             f"Unknown TTS provider: '{provider_name}'. "
-            f"Supported: edge_tts, openai, elevenlabs"
+            f"Supported: fish_audio, edge_tts, openai, elevenlabs"
         )
 
 
 def get_voice(provider_name: str, config: dict) -> str:
     """Get the configured voice for the provider."""
     tts_cfg = config.get('tts', {})
-    if provider_name == 'edge_tts':
-        return tts_cfg.get('voice', 'zh-CN-XiaoxiaoNeural')
+    if provider_name == 'fish_audio':
+        return tts_cfg.get('fish_audio_voice_id', '')
+    elif provider_name == 'edge_tts':
+        return tts_cfg.get('voice', 'zh-CN-YunxiNeural')
     elif provider_name == 'openai':
         return tts_cfg.get('openai_voice', 'alloy')
     elif provider_name == 'elevenlabs':
         return tts_cfg.get('elevenlabs_voice_id', 'Rachel')
-    return 'zh-CN-XiaoxiaoNeural'
+    return 'zh-CN-YunxiNeural'
 
 
 def synthesize(provider, text: str, output_path: str, voice: str) -> None:
