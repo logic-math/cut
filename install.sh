@@ -1,20 +1,28 @@
 #!/bin/bash
-# install.sh — 将 cut 技能包安装到 Claude Code（软链接模式）
+# install.sh — 将 cut 技能包安装到 Claude Code 和 OpenClaw（软链接模式）
 #
-# 软链接模式：~/.claude/skills/cut → 本仓库的 cut/ 目录
+# 软链接模式：
+#   Claude Code: ~/.claude/skills/cut        → 本仓库的 cut/ 目录
+#   OpenClaw:    ~/.openclaw/workspace/skills/cut → 本仓库的 openclaw/ 目录
+#
 # 好处：本地修改源码立即生效，无需重新安装。
 
 set -e
 
 SKILL_NAME="cut"
 SKILL_DIR="$HOME/.claude/skills/$SKILL_NAME"
+OPENCLAW_SKILL_DIR="$HOME/.openclaw/workspace/skills/$SKILL_NAME"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CUT_DIR="$SCRIPT_DIR/cut"
+OPENCLAW_DIR="$SCRIPT_DIR/openclaw"
 
-echo "Installing $SKILL_NAME skill to Claude Code (symlink mode)..."
+echo "Installing $SKILL_NAME skill..."
+echo ""
+
+# ── Claude Code 安装 ──────────────────────────────────────
+echo "▶ Claude Code (symlink mode)"
 echo "  Source : $CUT_DIR"
 echo "  Target : $SKILL_DIR"
-echo ""
 
 # 检查源目录
 if [ ! -f "$CUT_DIR/SKILL.md" ]; then
@@ -24,19 +32,32 @@ fi
 
 # 如果目标已存在（旧的复制版），先删除
 if [ -e "$SKILL_DIR" ] || [ -L "$SKILL_DIR" ]; then
-  echo "Removing existing installation at $SKILL_DIR ..."
+  echo "  Removing existing installation at $SKILL_DIR ..."
   rm -rf "$SKILL_DIR"
 fi
 
-# 创建父目录
 mkdir -p "$(dirname "$SKILL_DIR")"
-
-# 创建软链接
 ln -s "$CUT_DIR" "$SKILL_DIR"
-echo "✓ Symlink created: $SKILL_DIR → $CUT_DIR"
-
-# 安装 Python 依赖
+echo "  ✓ Symlink created: $SKILL_DIR → $CUT_DIR"
 echo ""
+
+# ── OpenClaw 安装 ─────────────────────────────────────────
+echo "▶ OpenClaw (symlink mode)"
+echo "  Source : $OPENCLAW_DIR"
+echo "  Target : $OPENCLAW_SKILL_DIR"
+
+if [ -f "$OPENCLAW_DIR/SKILL.md" ]; then
+  if [ -e "$OPENCLAW_SKILL_DIR" ] || [ -L "$OPENCLAW_SKILL_DIR" ]; then
+    echo "  Removing existing OpenClaw installation at $OPENCLAW_SKILL_DIR ..."
+    rm -rf "$OPENCLAW_SKILL_DIR"
+  fi
+  mkdir -p "$(dirname "$OPENCLAW_SKILL_DIR")"
+  ln -s "$OPENCLAW_DIR" "$OPENCLAW_SKILL_DIR"
+  echo "  ✓ Symlink created: $OPENCLAW_SKILL_DIR → $OPENCLAW_DIR"
+else
+  echo "  ⚠ openclaw/SKILL.md not found, skipping OpenClaw install"
+fi
+# 安装 Python 依赖
 echo "Installing Python dependencies..."
 
 # 优先用 manim venv（~/manim-env），否则 fallback 到系统 pip
@@ -102,10 +123,12 @@ echo "Verifying installation..."
 python3 "$SKILL_DIR/scripts/check_env.py"
 
 echo ""
-echo "Done! The /cut skill is now available in Claude Code."
+echo "Done! The cut skill is now available in:"
+echo "  ✓ Claude Code  — ~/.claude/skills/cut"
+echo "  ✓ OpenClaw     — ~/.openclaw/workspace/skills/cut"
 echo ""
-echo "Usage: In Claude Code, just say:"
-echo "  '帮我把 examples/programmer_extinction.md 做成视频'"
+echo "Usage in Claude Code: '帮我把 examples/programmer_extinction.md 做成视频'"
+echo "Usage in OpenClaw:    同样说 '把这篇讲稿做成视频'"
 echo ""
 echo "Default pipeline: Manim CE + manim-voiceover + Fish Audio (S2 Pro)"
 echo "  Manim python: $MANIM_PYTHON"
